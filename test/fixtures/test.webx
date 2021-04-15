@@ -1,0 +1,31 @@
+    let list=[
+        {name:"aaa"},
+        {name:"bbb",nodes:[{name:"ccc"}]}
+    ]
+    document.body.appendChild(
+        <MyComponent list=@(list)>
+            <li>
+                @{
+                    let name="";
+                    <input value=@(name) placeholder="name"/>
+                    <button onclick=function(){
+                        list.unshift({name});
+                        name="";
+                    }>add</button>
+                }
+            </li>
+        </MyComponent>
+    )
+    function MyComponent({list,children}){
+        return <ul>
+            @:children
+            @:for(let item of list){
+                <li>
+                    @{item.name}
+                    @:if(item.nodes && item.nodes.length){
+                        <MyComponent list=@(item.nodes)/>
+                    }
+                </li>
+            }
+        </ul>
+    }
