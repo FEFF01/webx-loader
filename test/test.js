@@ -36,5 +36,5 @@ const globalConfig = {
 };
 
 webpack(globalConfig, (err, stats) => {
-    //console.log(err, stats);
+    err&&console.log(err);
 })
