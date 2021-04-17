@@ -1,2 +1,1626 @@
-!function(t,e){for(var n in e)t[n]=e[n]}(exports,function(t){var e={};function n(i){if(e[i])return e[i].exports;var r=e[i]={i:i,l:!1,exports:{}};return t[i].call(r.exports,r,r.exports,n),r.l=!0,r.exports}return n.m=t,n.c=e,n.d=function(t,e,i){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:i})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var i=Object.create(null);if(n.r(i),Object.defineProperty(i,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var r in t)n.d(i,r,function(e){return t[e]}.bind(null,r));return i},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=53)}({15:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.createTextNode=e.createElement=e.insertBefore=e.appendChild=e.addEventListener=e.setText=e.setAttribute=e.removeAllSibling=e.entryStatement=e.nextEntrySibling=e.nextIfSibling=e.setNodes=e.nextNodes=e.nextSibling=e.nextChild=e.observable=e.runInAction=e.action=e.autorun=e.prevent=void 0;const i=n(6);Object.defineProperty(e,"observable",{enumerable:!0,get:function(){return i.observable}}),Object.defineProperty(e,"action",{enumerable:!0,get:function(){return i.action}}),Object.defineProperty(e,"runInAction",{enumerable:!0,get:function(){return i.runInAction}});const r=n(16),o=n(17);function s(t){return i.sandbox(t,1)()}function l(t,e){return new i.Subscriber(t,e?i.SUBSCRIBE_OPTION.PREVENT_COLLECT:i.SUBSCRIBE_OPTION.DEFAULT).mount().res}function u(t){return t.removeAllSibling()}function a(t){return t.nextSibling()}function c(t,e){return t.nextSibling().setNodes(e)}function f(t,e,n,i){let o=t instanceof Array?new r.NodeList(t):new r.Children(t);return void 0!==e&&(n?l((function(){o.setNodes(e())}),i):o.setNodes(e)),o}function h(t,e,n,i){i?t[e]=n:t.setAttribute(e,n)}function d(t,e){t.data=e}function p(t,...e){t.addEventListener(...e)}function b(t,e){t.appendChild(e)}function g(t,e,n){t.insertBefore(e,n)}function _(t){return document.createElement(t)}function x(t){return document.createTextNode(t)}function y(t,e){t.setNodes(e)}Object.defineProperty(e,"entryStatement",{enumerable:!0,get:function(){return o.entryStatement}}),Object.defineProperty(e,"nextIfSibling",{enumerable:!0,get:function(){return o.nextIfSibling}}),Object.defineProperty(e,"nextEntrySibling",{enumerable:!0,get:function(){return o.nextEntrySibling}}),e.prevent=s,e.autorun=l,e.removeAllSibling=u,e.nextSibling=a,e.nextNodes=c,e.nextChild=f,e.setAttribute=h,e.setText=d,e.addEventListener=p,e.appendChild=b,e.insertBefore=g,e.createElement=_,e.createTextNode=x,e.setNodes=y;let v={prevent:s,autorun:l,action:i.action,runInAction:i.runInAction,observable:i.observable,nextChild:f,nextSibling:a,nextNodes:c,setNodes:y,nextIfSibling:o.nextIfSibling,nextEntrySibling:o.nextEntrySibling,entryStatement:o.entryStatement,removeAllSibling:u,setAttribute:h,setText:d,addEventListener:p,appendChild:b,insertBefore:g,createElement:_,createTextNode:x};"object"==typeof window&&(window._webx=v),e.default=v},16:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.NodeList=e.Children=e.Sibling=void 0;const i=n(6),r=new WeakMap;class o{constructor(t,e){this.target=t,this.prev=e,this.nodes=[],this.siblings=[],(e||(this.prev=e=r.get(t)))&&(e.next&&(e.next.prev=this,this.next=e.next),e.next=this),r.set(t,this)}setNodes(t){if(!this.target)return;let e=this.nodes,n=e.length,i=n&&e.slice();n&&this.removeAllNodes(),this.addNodes(t,i)}moveTo(t){let e=this.index,n=this.parent;if(e===t)return;let i=n.siblings;i.splice(e,1);let r=this.firstSibling(),o=this.lastSibling(),s=r.prev,l=o.next;s&&(s.next=l),l&&(l.prev=s);let u=i[t]||n.lastSibling().next,a=u&&u.firstNode(),c=u?u.prev:n.lastSibling();a?this.insertBefore(a):this.appendTo(),c&&(c.next=r),u&&(u.prev=o),r.prev=c,o.next=u,t=Math.min(t,i.length),i.splice(t,0,this);for(let n=Math.min(e,t),r=Math.max(e,t);n<=r;n++)i[n].index=n}firstNode(){let t=this.nodes;return t.length?t[0]:this.next&&this.next.firstNode()}firstSibling(){return this}lastSibling(){let t=this.siblings[this.siblings.length-1];return t?t.lastSibling():this}nextSibling(){if(!this.target)return this;let t=new this.constructor(this.target,this.lastSibling()),e=this.siblings;return t.parent=this,t.index=e.length,e.push(t),t}removeAllSibling(){let t=this.siblings;for(let e=t.length-1;e>=0;e--)this.removeSibling(t[e])}removeSibling(t){let e=this.siblings,n=t.index;if(e[n]===t){let i=t.prev,r=t.lastSibling(),o=r.next;for(t.prev=null,r.next=null,i&&(i.next=o),o&&(o.prev=i),t.setNodes(null),e.splice(n,1);n<e.length;)e[n++].index-=1;t.removeAllSibling(),t.target=null}}destory(){this.parent.removeSibling(this)}}e.Sibling=o;e.Children=class extends o{constructor(){super(...arguments),this.insertBefore=t=>{let e=t.parentElement;for(let n of this.nodes)e.insertBefore(n,t);for(let e of this.siblings)e.insertBefore(t)}}appendTo(){for(let t of this.nodes)this.target.appendChild(t);for(let t of this.siblings)t.appendTo()}removeAllNodes(){for(let t of this.nodes){let e=t.parentElement;e&&e.removeChild(t)}this.nodes.length=0}addNodes(t,e){if(null==t)return;let n,i=this.nodes;switch(!0){case t instanceof Node:i.push(n=t);break;case t instanceof Array:for(let n of t)this.addNodes(n,e);return;default:e&&e.length&&e[0].nodeType===Node.TEXT_NODE?_webx.setText(n=e.shift(),t):n=_webx.createTextNode(t),i.push(n)}let r=this.next&&this.next.firstNode();r?_webx.insertBefore(this.target,n,r):_webx.appendChild(this.target,n)}};e.NodeList=class extends o{constructor(t,e){super(t,e),this.insertBefore=t=>{let e=this.target,n=this.raw,i=this.nodes;if(i.length){let r=n.indexOf(t);e.splice(n.indexOf(i[0]),i.length);for(let t of i)e.splice(r,0,t)}for(let e of this.siblings)e.insertBefore(t)},this.raw=i.Observer.TO_RAW(t)}setNodes(t){let e=i.Subscriber.PARENT,n=e.option;e.option=n|i.SUBSCRIBE_OPTION.PREVENT_COLLECT,super.setNodes(t),e.option=n}moveTo(t){let e=i.Subscriber.PARENT,n=e.option;e.option=n|i.SUBSCRIBE_OPTION.PREVENT_COLLECT,super.moveTo(t),e.option=n}removeSibling(t){let e=i.Subscriber.PARENT,n=e.option;e.option=n|i.SUBSCRIBE_OPTION.PREVENT_COLLECT,super.removeSibling(t),e.option=n}appendTo(){let t=this.target,e=this.raw,n=this.nodes;if(n.length){t.splice(e.indexOf(n[0]),n.length);for(let e of n)t.push(e)}for(let t of this.siblings)t.appendTo()}removeAllNodes(){let t=this.target,e=this.raw;for(let n of this.nodes)t.splice(e.indexOf(n),1);this.nodes.length=0}addNodes(t,e){if(null==t)return;let n,i=this.nodes;switch(!0){case t instanceof Node:i.push(n=t);break;case t instanceof Array:for(let n of t)this.addNodes(n,e);return;default:e&&e.length&&e[0].nodeType===Node.TEXT_NODE?_webx.setText(n=e.shift(),t):n=_webx.createTextNode(t),i.push(n)}let r=this.next&&this.next.firstNode(),o=this.target,s=this.raw;r?o.splice(s.indexOf(r),0,n):o.push(n)}}},17:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.nextEntrySibling=e.nextIfSibling=e.entryStatement=void 0;const i=n(6);e.entryStatement=function(t,e){if(!t)return;let n=Object.keys(t),i=Object.values(t);for(let r=0,o=n.length;r<o;r++)e(i[r],n[r],r,t)},e.nextIfSibling=function(t,e,n,r){let o,s=i.Subscriber.PARENT;i.watch(e,(function(e,l){let u;o&&!e==!l||(u=e?n:r,o&&(o.unmount(),t.removeAllSibling()),o=u&&new i.Subscriber(u),o&&o.mount(s))}),!0)},e.nextEntrySibling=function(t,e,n){let r,o;t&&(t.removeAllSibling(),r=t.siblings);let s,l,u,a,c,f,h=[],d=[],p=[],b=[];function g(t,e,n,i){s[i]=t,l[i]=e,u[i]=n,a[i]=i}function _(t,e){if(0===t&&1===e)return h.shift(),d.shift(),p.shift(),void b.shift();h.splice(t,e),d.splice(t,e),p.splice(t,e),b.splice(t,e)}const x=i.action((function(e,n,i,r){let o=h[e],s=o[0];g(o,n,i,r),b[e]!==r&&(t&&o[2].moveTo(r),s.i=r),p[e]!==i&&(s.k=i),d[e]!==n&&(s.v=n)}));function y(e){let n=h[e];n[1].parent=S.parent,n[1].unmount(),t&&n[2].destory(),_(e,1)}function v(e,s,l){let u=i.observable({v:e,k:s,i:l,t:o}),a=t&&r.length,c=new i.Subscriber((function(){n(u)}),i.SUBSCRIBE_OPTION.PREVENT_COLLECT).mount(S.parent);c.parent=S;let f=t&&r[a];g([u,c,f],e,s,l),t&&f.moveTo(l)}let S=new i.Subscriber((function(){let t,e=S.brokens,n=e.map(t=>t.accu);if(o=E(),c=[],f=[],null!=o){let t=i.Observer.TO_OB(o);if(t){let e=t.target;t.collect(i.MASK_ITERATE,1);for(let n in e)t.collect(n,2),c.push(n),f.push(i.observable(e[n]))}else c=Object.keys(o),f=Object.values(o)}s=[],l=[],u=[],a=[];let r,g,m,O=0,T=f.length;for(;O<T;)if(g=f.shift(),m=c.shift(),d.length&&(r=d.indexOf(g),r<0?(r=p.indexOf(m),r>=0?(t=d[r],t&&"object"==typeof t&&f.includes(t)&&(r=-1)):f.includes(d[0])||(r=0)):b[r]!==O&&p[r]!==m&&"object"!=typeof g&&(t=c.indexOf(p[r]),t>=0&&f[t]===d[r]&&(r=f.includes(d[0])?-1:0)),r>=0)){for(t=r,x(r++,g,m,O++);f.length&&r<d.length&&f[0]===d[r];)x(r++,f.shift(),c.shift(),O++);_(t,r-t)}else v(g,m,O++);for(;d.length;)y(0);h=s,d=l,p=u,b=a;for(let t,i=0;i<e.length;i++)t=e[i],t.accu!==n[i]||void 0===t.parent||t.is_run||t.update()})),E=i.computed(e,S);S.mount()}},3:function(t,e){var n;n=function(){return this}();try{n=n||new Function("return this")()}catch(t){"object"==typeof window&&(n=window)}t.exports=n},53:function(t,e,n){"use strict";n.r(e);var i=n(15);for(var r in i)["default"].indexOf(r)<0&&function(t){n.d(e,t,(function(){return i[t]}))}(r)},6:function(t,e,n){"use strict";(function(t){var n;Object.defineProperty(e,"__esModule",{value:!0}),e.MASK_UNDEFINED=e.MASK_ITERATE=e.reaction=e.watch=e.computed=e.SUBSCRIBE_OPTION=e.transacts=e.runInSandbox=e.sandbox=e.runInAction=e.action=e.runInAtom=e.atom=e.autorun=e.observable=e.Subscriber=e.Observer=void 0,function(t){t[t.DEFAULT=0]="DEFAULT",t[t.PREVENT_COLLECT=1]="PREVENT_COLLECT",t[t.COMPUTED=2]="COMPUTED"}(n||(n={})),e.SUBSCRIBE_OPTION=n;const i="object"==typeof window?window:t,r=[],o=[],s=[],l=[],u=new WeakMap,a=[],c=["iterate"];e.MASK_ITERATE=c;const f=["undefined"];e.MASK_UNDEFINED=f;class h{constructor(t){switch(this.target=t,this.refmap=new Map,this.ownmap=new Map,this._has=t=>t in this.target,this._val=t=>this.target[t],this._del=t=>delete this.target[t],this._set=(t,e)=>this.target[t]=e,this._proxy_handler={get:(t,e)=>{let n=t[e];return"__proto__"!==e&&(n=E(n),this.collect(e)),n},set:(t,e,n)=>{let i=t[e],r=u.get(n),o=r?r.target:n,s=t.hasOwnProperty(e),l=N(i,o);return l&&s||_(()=>{t[e]=o,s||(this.notify(e,!1,1),this.notify(c,c,1)),l||this.notify(e,i)}),!0},ownKeys:t=>(this.collect(c,1),p(t)),has:(t,e)=>(this.collect(e,1),e in t),deleteProperty:(t,e)=>_(()=>(t.hasOwnProperty(e)&&(this.notify(e,t[e]),this.notify(e,!0,1),this.notify(c,c,1)),delete t[e]))},!0){case t instanceof WeakSet:case t instanceof WeakMap:case t instanceof Map:case t instanceof Set:!function(t){var e;let n=t.target,i=n.__proto__,r=new h({}),o=(null===(e=Object.getOwnPropertyDescriptor(i,"size"))||void 0===e?void 0:e.get.bind(n))||function(){},s=n instanceof Map||n instanceof WeakMap;t.release=function(){return r.release(),t.release()},r._has=i.has.bind(n),r._val=s?function(t){return i.get.call(n,t)}:function(t){return i.has.call(n,t)?t:f};function l(t){return r.collect(t[0]),[t[0],E(t[1])]}function a(t){return r.collect(t[0]),E(t[1])}r._del=function(t){return i.delete.call(n,t)},r._set=i.set?function(t,e){return i.set.call(n,t,e)}:function(t,e){return i.add.call(n,t)};let d=Object.assign({get:t=>(r.collect(t),E(i.get.call(n,t))),set(t,e){let o=u.get(t);o&&(t=o.target);let s=i.has.call(n,t),l=s?i.get.call(n,t):f;return s&&N(l,e)||_(()=>{i.set.call(n,t,e),s||(r.notify(t,!1,1),r.notify(c,c,1)),r.notify(t,l)}),this},add(e){return i.has.call(n,e)||_(()=>{let s=o();i.add.call(n,e),void 0!==s&&t.notify("size",s,6),r.notify(e,!1,1),r.notify(e,f),r.notify(c,c,1)}),this},delete(e){let s=i.get,l=s?s.call(n,e):e,u=o(),a=i.delete.call(n,e);return a&&_(()=>{r.notify(e,l),r.notify(e,!0,1),r.notify(c,c,1),void 0!==u&&t.notify("size",u,6)}),a},clear(){let e=o();e&&_(()=>{i.forEach.call(n,(t,e)=>{r.notify(e,t),r.notify(e,!0,1)}),r.notify(c,c,1),t.notify("size",e,6),i.clear.call(n)})},forEach:(t,...e)=>(r.collect(c,1),i.forEach.call(n,(function(e,...n){t(E(e),...n)}),...e)),has:t=>(r.collect(t,1),i.has.call(n,t)),size:o},[["keys",t=>t[0]],["entries",l],["values",a],[Symbol.iterator,s?l:a]].reduce((function(t,[e,o]){let s=i.entries;return s&&(t[e]=function(){r.collect(c,1);let t=s.call(n),e=t.next.bind(t);return t.next=function(){let{done:t,value:n}=e();return t||(n=o(n)),{done:t,value:n}},t}),t}),{})),b={},g=p(i);for(let t of g){let e=d[t],n=Object.getOwnPropertyDescriptor(i,t);e&&(void 0!==n.value?n.value=e:n.get=e),b[t]=n}n.__proto__=Object.create(n.__proto__.__proto__,b)}(this);break;case t[Symbol.iterator]:case t instanceof Array:!function(t){let e=t.target,n=e.__proto__,i=t._proxy_handler.set;e.__proto__=Object.create(n,Array.prototype.concat.call(["push","pop","shift","unshift","splice","sort","reverse"].map((function(t){const e=n[t];return e&&[t,function(){let t=arguments;return _(()=>e.apply(this,t))}]})),["values",Symbol.iterator].map((function(i){return n[i]&&[i,function(){t.collect(c,1);let n=0,i=t.proxy;return{next(){let r,o=n>=e.length;return o||(t.collect(n),r=i[n++]),{done:o,value:r}}}}]}))).reduce((function(t,e){return e&&(t[e[0]]={value:e[1]}),t}),{})),t._proxy_handler.set=function(n,r,o){let s=e.length;return _((function(){let l=i(n,r,o);return e.length!==s&&t.notify("length",s,10),l}))}}(this)}this.proxy=new Proxy(t,this._proxy_handler),u.set(this.proxy,this),u.set(t,this)}static TO_RAW(t){let e=u.get(t);return e?e.target:t}static TO_OB(t){return u.get(t)}collect(t,e=2){let i=r[0];if(i&&!(i.option&n.PREVENT_COLLECT)){let n=this._map(e),r=n.get(t);r||n.set(t,r=new Set),i.depend(r)}}release(){for(let t of[this.refmap,this.ownmap])t.forEach(t=>{t.forEach(e=>e.undepend(t))}),t.clear()}notify(t,e,n=2){let i=[this,t,e,n];a.length&&a[0][0].push(i);let r=this._map(n).get(t);if(r&&r.size)if(l.length)r.forEach(t=>t.addRecord(i));else{let t,e=Number.MAX_SAFE_INTEGER;r.forEach(n=>{t.push(n),e>n.depth&&(e=n.depth)}),T(t,e)}}_map(t){return 2&t?this.refmap:this.ownmap}}e.Observer=h;class d{constructor(t,e=n.DEFAULT){this.fn=t,this.option=e,this.depth=0,this.children=[],this._deps=new Set,this.is_run=!1,this.brokens=[],this.accu=0}static get PARENT(){return r[0]}undepend(t){this._deps.delete(t),t.delete(this)}depend(t){this._deps.add(t),t.add(this),this.option&n.COMPUTED&&this.parent&&void 0!==this.parent.parent&&this.parent.depend(t)}clear(t){if(this._deps.forEach(t=>t.delete(this)),this._deps.clear(),!t)for(let t of this.children)t.clear(),t.parent=void 0;this.children.length=0}unmount(t){if(this.clear(t),!t){let t=this.parent&&this.parent.children;if(t&&t.splice(t.indexOf(this),1),this._sandbox){let t=this._sandbox[1].indexOf(this);t>=0&&this._sandbox[1].splice(t,1)}}this._sandbox=void 0,this.parent=void 0}mount(t){if(void 0!==this.parent)return new d(this.fn).mount(t);if(this.parent=t||r[0],this.parent){if(void 0===this.parent.parent)return this.parent=void 0,this;this.depth=this.parent.depth+1}else this.parent=null;return a.length&&(this._sandbox=a[0],this._sandbox[1].push(this)),this.parent&&this.parent.children.push(this),this._run(),this}update(){return this.clear(),this._run()}addRecord(t){let e=l[0][0],i=s.indexOf(this);i<0||o[i][0]<e?(o.unshift([e,[t]]),s.unshift(this)):o[i][1].push(t),this.option&n.COMPUTED&&this.parent&&void 0!==this.parent.parent&&this.parent.addRecord(t)}_run(){this.is_run=!0,r.unshift(this),this.accu+=1;try{return this.res=this.fn()}catch(t){throw t}finally{r.shift(),this.is_run=!1,this.brokens.length=0}}}function p(t){return Array.prototype.concat.call(Object.getOwnPropertySymbols(t),Object.getOwnPropertyNames(t))}function b(t,e,...n){!function(t){let e,n=l[0];void 0===t?t=n?2&n[1]:1:"number"!=typeof t&&(e=t.hook,t=t.option);l.unshift([l.length,t,e])}(t);try{return e(...n)}catch(t){throw t}finally{!function(){let t=[],e=Number.MAX_SAFE_INTEGER,n=l.shift(),i=n[0],r=n[2];if(0!==l.length&&(16&n[1]||2&n[1]&&2&l[0][1]))return;for(;s.length&&o[0][0]>=i;){let n=s.shift(),i=o.shift();if(t.indexOf(n)<0&&O(i[1])){let i;for(;(i=s.lastIndexOf(n))>=0;)s.splice(i,1),o.splice(i,1);e=Math.min(e,n.depth),t.unshift(n)}}r&&r(t),t.length&&(8&n[1]?x((function(){T(t,e)})):T(t,e))}()}}e.Subscriber=d,e.transacts=b,e.atom=function(t){return b.bind(null,t,2)};const g=b.bind(null,2);e.runInAtom=g;const _=b.bind(null,18);e.action=function(t){return b.bind(null,1,t)};const x=b.bind(null,1);e.runInAction=x,e.sandbox=function(t,e=7){return v.bind(null,e,t)};const y=v.bind(null,7);function v(t,e,...i){let o=a[0],s=r[0],l=s&&s.option,u=4&t||!o?[]:o[1],c=u.length,f=4&t||!o?[]:o[0];s&&(s.option=1&t?l|n.PREVENT_COLLECT:l&~n.PREVENT_COLLECT),a.unshift([f,u,t|(o&&4&o[2])]);try{return e(...i)}catch(t){throw t}finally{if(a.shift(),4&t&&function(t){let e=[];O(t,(function(t){let n=t[0],i=t[1],r=t[3];if(1&r)n._del(i);else if(4&~r){if(8&r)return void e.push(t);n._set(i,t[2])}}));for(let t of e)t[0]._set(t[1],t[2])}(f),2&t){for(let t=u.length-1;t>=c;t--){let e=u[t];e.unmount(e.parent!==s)}u.length=c}else o&&4&t&&Array.prototype.push.apply(o[1],u);s&&(s.option=l)}}e.runInSandbox=y,e.autorun=function(t){let e=new d(t);return e.mount(),function(){e.unmount()}};const S=new Set([Object,Array,Map,Set,WeakMap,WeakSet]);function E(t){if(t&&"object"==typeof t){let e=u.get(t);if(e)t=e.proxy;else{let e=t.constructor;(S.has(e)||i[e.name]!==e)&&(t=new h(t).proxy)}}return t}function m(t,e,n){let i=[],r=new d((function(){if(i.unshift(t()),i.length>1){let[t,n]=i;N(t,n)||e(t,n)}else 1===i.length&&n&&e(i[0]);i.length=1}));return r.mount(),function(){r.unmount()}}function O(t,e){let n=new Map,i=!1;for(let r of t){let t=r[0],o=r[1],s=n.get(t);if(s){if(s.has(o))continue;s.add(o)}else n.set(t,new Set([o]));if(!N(1!==r[3]?t._val(o):t._has(o),r[2])){if(!e)return!0;-1===e(r)&&s.delete(o),i=!0}}return i}function T(t,e=0){let i=a[0],r=i&&4&i[2]&&i[1];const o=function(t){return!r||r.indexOf(t)>=0};let s,l;t:for(let i=t.length-1;i>=0;i--)if(s=t[i],s.option&n.COMPUTED)t.splice(i,1),s.update();else{for(;(s=s.parent)&&s.depth>=e&&!s.is_run&&o(s);)if(l=t.indexOf(s),l>=0){t[l].brokens.unshift(t[i]),t.splice(i,1);continue t}s=t[i],!s.is_run&&o(s)||t.splice(i,1)}for(let e=0;e<t.length;e++)s=t[e],void 0!==s.parent&&s.update()}function N(t,e){return t===e||t!=t&&e!=e}e.observable=E,e.computed=function(t,e=null){let i,r=0,o=new d((function(){(r^=1)&&(i=t())}),n.COMPUTED);return o.parent=e,function(){return r||o.update(),i}},e.watch=m,e.reaction=function(t,e){return m(t,(function(t,n){N(t,n)||e(t)}))}}).call(this,n(3))}}));
+(function(e, a) { for(var i in a) e[i] = a[i]; }(exports, /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./js/runtime.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./js/core/runtime/index.ts":
+/*!**********************************!*\
+  !*** ./js/core/runtime/index.ts ***!
+  \**********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createTextNode = exports.createElement = exports.insertBefore = exports.appendChild = exports.addEventListener = exports.setText = exports.setAttribute = exports.removeAllSibling = exports.entryStatement = exports.nextEntrySibling = exports.nextIfSibling = exports.setNodes = exports.nextNodes = exports.nextSibling = exports.nextChild = exports.observable = exports.runInAction = exports.action = exports.autorun = exports.prevent = void 0;
+const obb_1 = __webpack_require__(/*! ../../obb/js/obb */ "./js/obb/js/obb.ts");
+Object.defineProperty(exports, "observable", { enumerable: true, get: function () { return obb_1.observable; } });
+Object.defineProperty(exports, "action", { enumerable: true, get: function () { return obb_1.action; } });
+Object.defineProperty(exports, "runInAction", { enumerable: true, get: function () { return obb_1.runInAction; } });
+const siblings_1 = __webpack_require__(/*! ./siblings */ "./js/core/runtime/siblings.ts");
+const polyfill_1 = __webpack_require__(/*! ./polyfill */ "./js/core/runtime/polyfill.ts");
+Object.defineProperty(exports, "entryStatement", { enumerable: true, get: function () { return polyfill_1.entryStatement; } });
+Object.defineProperty(exports, "nextIfSibling", { enumerable: true, get: function () { return polyfill_1.nextIfSibling; } });
+Object.defineProperty(exports, "nextEntrySibling", { enumerable: true, get: function () { return polyfill_1.nextEntrySibling; } });
+function prevent(fn) {
+    return obb_1.sandbox(fn, 1 /* PREVENT_COLLECT */)();
+}
+exports.prevent = prevent;
+function autorun(fn, passive) {
+    let subscriber = new obb_1.Subscriber(fn, passive ? obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT : obb_1.SUBSCRIBE_OPTION.DEFAULT);
+    return subscriber.mount().res;
+}
+exports.autorun = autorun;
+function removeAllSibling(sibling) {
+    return sibling.removeAllSibling();
+}
+exports.removeAllSibling = removeAllSibling;
+function nextSibling(sibling) {
+    return sibling.nextSibling();
+}
+exports.nextSibling = nextSibling;
+function nextNodes(sibling, els) {
+    return sibling.nextSibling().setNodes(els);
+}
+exports.nextNodes = nextNodes;
+function nextChild(el, getter, is_reactive, passive) {
+    let sibling = el instanceof Array ? new siblings_1.NodeList(el) : new siblings_1.Children(el);
+    if (getter !== undefined) {
+        is_reactive
+            ? autorun(function () {
+                sibling.setNodes(getter());
+            }, passive)
+            : sibling.setNodes(getter);
+    }
+    return sibling;
+}
+exports.nextChild = nextChild;
+function setAttribute(el, name, value, literal) {
+    //console.log("_webx_set_attribute:", { el, name, value, literal });
+    !literal ? el.setAttribute(name, value) : (el[name] = value);
+}
+exports.setAttribute = setAttribute;
+function setText(node, text) {
+    //console.log("setText:", { node, text });
+    // CharacterData
+    node.data = text;
+}
+exports.setText = setText;
+function addEventListener(el, ...args) {
+    el.addEventListener(...args);
+}
+exports.addEventListener = addEventListener;
+function appendChild(el, child) {
+    el.appendChild(child);
+}
+exports.appendChild = appendChild;
+function insertBefore(parent, target, ref) {
+    parent.insertBefore(target, ref);
+}
+exports.insertBefore = insertBefore;
+function createElement(tagName) {
+    //console.log("_webx_create_element:", { tagName });
+    return document.createElement(tagName);
+}
+exports.createElement = createElement;
+function createTextNode(data) {
+    //console.log("_webx_create_text_node:", { data });
+    return document.createTextNode(data);
+}
+exports.createTextNode = createTextNode;
+function setNodes(sibling, els) {
+    sibling.setNodes(els);
+}
+exports.setNodes = setNodes;
+let webx = {
+    prevent,
+    autorun,
+    action: obb_1.action,
+    runInAction: obb_1.runInAction,
+    observable: obb_1.observable,
+    nextChild,
+    nextSibling,
+    nextNodes,
+    setNodes,
+    nextIfSibling: polyfill_1.nextIfSibling,
+    nextEntrySibling: polyfill_1.nextEntrySibling,
+    entryStatement: polyfill_1.entryStatement,
+    removeAllSibling,
+    setAttribute,
+    setText,
+    addEventListener,
+    appendChild,
+    insertBefore,
+    createElement,
+    createTextNode
+};
+typeof window === "object" && (window._webx = webx);
+exports.default = webx;
+/*
+function validate(sib: Sibling) {
+    let siblings = sib.siblings;
+    for (let s of siblings) {
+        if (sib.next !== s) {
+            debugger;
+        }
+        if (s.prev !== sib) {
+            debugger;
+        }
+        sib = validate(s);
+    }
+    return sib
+}*/ 
+
+
+/***/ }),
+
+/***/ "./js/core/runtime/polyfill.ts":
+/*!*************************************!*\
+  !*** ./js/core/runtime/polyfill.ts ***!
+  \*************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.nextEntrySibling = exports.nextIfSibling = exports.entryStatement = void 0;
+const obb_1 = __webpack_require__(/*! ../../obb/js/obb */ "./js/obb/js/obb.ts");
+function entryStatement(object, body) {
+    if (!object) {
+        return;
+    }
+    let newest_keys = Object.keys(object);
+    let newest_values = Object.values(object);
+    for (let index = 0, limit = newest_keys.length; index < limit; index++) {
+        body(newest_values[index], newest_keys[index], index, object);
+    }
+}
+exports.entryStatement = entryStatement;
+function nextIfSibling(parent, test, consequent, alternate) {
+    let parent_subscriber = obb_1.Subscriber.PARENT;
+    let subscriber;
+    obb_1.watch(test, function (new_val, old_val) {
+        let callback;
+        if (!subscriber || !new_val !== !old_val) {
+            callback = new_val ? consequent : alternate;
+            if (subscriber) {
+                subscriber.unmount();
+                parent.removeAllSibling();
+            }
+            subscriber = callback && new obb_1.Subscriber(callback);
+            subscriber && subscriber.mount(parent_subscriber);
+        }
+    }, true);
+}
+exports.nextIfSibling = nextIfSibling;
+function nextEntrySibling(parent, data, callback) {
+    let siblings;
+    if (parent) {
+        parent.removeAllSibling();
+        siblings = parent.siblings;
+    }
+    let target;
+    let old_control_set = [];
+    let old_value_set = [];
+    let old_key_set = [];
+    let old_index_set = [];
+    let new_control_set;
+    let new_value_set;
+    let new_key_set;
+    let new_index_set;
+    let newest_keys;
+    let newest_values;
+    function addRecord(control, value, key, index) {
+        /*new_control_set.push(control);
+        new_value_set.push(value);
+        new_key_set.push(key);
+        new_index_set.push(index);*/
+        new_control_set[index] = control;
+        new_value_set[index] = value;
+        new_key_set[index] = key;
+        new_index_set[index] = index;
+    }
+    function delRecord(index, length) {
+        if (index === 0 && length === 1) {
+            old_control_set.shift();
+            old_value_set.shift();
+            old_key_set.shift();
+            old_index_set.shift();
+            return;
+        }
+        old_control_set.splice(index, length);
+        old_value_set.splice(index, length);
+        old_key_set.splice(index, length);
+        old_index_set.splice(index, length);
+    }
+    const reuse = obb_1.action(function (_index, value, key, index) {
+        //console.log("reuse", old_index_set[_index], value, key, index)
+        let control = old_control_set[_index];
+        let entry = control[0 /* ENTRY */];
+        addRecord(control, value, key, index);
+        if (old_index_set[_index] !== index) {
+            parent && control[2 /* SIBLING */].moveTo(index);
+            //console.log("index", _index, index);
+            entry.i = index;
+        }
+        if (old_key_set[_index] !== key) {
+            //console.log("key", bak_key_set[_index], key);
+            entry.k = key;
+        }
+        if (old_value_set[_index] !== value) {
+            //console.log("key", bak_value_set[_index], value);
+            entry.v = value;
+        }
+    });
+    function destory(index) {
+        let control = old_control_set[index];
+        //console.log("destory", index, control)
+        control[1 /* SUBSCRIBER */].parent = subscriber.parent;
+        control[1 /* SUBSCRIBER */].unmount();
+        parent && control[2 /* SIBLING */].destory();
+        //old_value_set[index] = old_key_set[index] = MARK_NOTUSED;
+        delRecord(index, 1);
+    }
+    function add(value, key, index) {
+        //console.log("add", value, key, index)
+        let entry = obb_1.observable({ v: value, k: key, i: index, t: target });
+        let last_index = parent && siblings.length;
+        /**
+         * subscriber.parent
+         * 使 _subscriber 只跟随上级订阅环境自动释放
+         * 由当前订阅环境自有逻辑精确处理子订阅关系
+         */
+        let current_subscriber = new obb_1.Subscriber(function () {
+            callback(entry);
+        }, obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT).mount(subscriber.parent);
+        /**
+         * 能防止冗余的订阅回调
+         */
+        current_subscriber.parent = subscriber;
+        let current_sibling = parent && siblings[last_index];
+        addRecord([entry, current_subscriber, current_sibling], value, key, index);
+        parent && current_sibling.moveTo(index);
+    }
+    let subscriber = new obb_1.Subscriber(function () {
+        let brokens = subscriber.brokens;
+        let accus = brokens.map(sub => sub.accu);
+        target = getData(); //计算方法能穿透订阅，当内部有变更时当前订阅也会被回调
+        newest_keys = [];
+        newest_values = [];
+        if (target !== null && target !== undefined) {
+            let ob = obb_1.Observer.TO_OB(target);
+            if (ob) { // 提高执行效率， 10000 个数据项 大概能提升10ms
+                let raw = ob.target;
+                ob.collect(obb_1.MASK_ITERATE, 1 /* OWN */);
+                for (let key in raw) {
+                    ob.collect(key, 2 /* REF */);
+                    newest_keys.push(key);
+                    newest_values.push(obb_1.observable(raw[key]));
+                }
+            }
+            else {
+                newest_keys = Object.keys(target);
+                newest_values = Object.values(target);
+            }
+        }
+        new_control_set = [];
+        new_value_set = [];
+        new_key_set = [];
+        new_index_set = [];
+        let t;
+        let index = 0;
+        let _index;
+        let value;
+        let key;
+        let length = newest_values.length;
+        while (index < length) {
+            value = newest_values.shift();
+            key = newest_keys.shift();
+            if (old_value_set.length) {
+                /**
+                 * 这里 value key index 中，其中两个因素确定结果的匹配
+                 * 作用是尽可能的保持循环体内闭包环境的稳定性（不会因为数值差异过大而大量重新生成）
+                 * 即是不需要给循环项绑定key（绑定key的方式仅是key与dom的确认关系，当key为下标时将没有意义）
+                 * ，也能维持dom与数据稳定的一一确认关系
+                 */
+                _index = old_value_set.indexOf(value);
+                if (_index < 0) {
+                    _index = old_key_set.indexOf(key);
+                    if (_index >= 0) {
+                        t = old_value_set[_index];
+                        if (t && typeof t === "object"
+                            && newest_values.includes(t)) {
+                            _index = -1;
+                        }
+                    }
+                    else if (!newest_values.includes(old_value_set[0])) {
+                        _index = 0;
+                    }
+                }
+                else if (old_index_set[_index] !== index
+                    && old_key_set[_index] !== key
+                    && typeof value !== "object") {
+                    t = newest_keys.indexOf(old_key_set[_index]);
+                    if (t >= 0 && newest_values[t] === old_value_set[_index]) {
+                        _index = newest_values.includes(old_value_set[0]) ? -1 : 0;
+                    }
+                }
+                if (_index >= 0) {
+                    t = _index;
+                    reuse(_index++, value, key, index++);
+                    while (newest_values.length && _index < old_value_set.length) {
+                        if (newest_values[0] === old_value_set[_index]) {
+                            reuse(_index++, newest_values.shift(), newest_keys.shift(), index++);
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    delRecord(t, _index - t);
+                    continue;
+                }
+            }
+            add(value, key, index++);
+        }
+        while (old_value_set.length) {
+            destory(0);
+        }
+        old_control_set = new_control_set;
+        old_value_set = new_value_set;
+        old_key_set = new_key_set;
+        old_index_set = new_index_set;
+        for (let i = 0, sub; i < brokens.length; i++) {
+            sub = brokens[i];
+            if (sub.accu === accus[i]
+                && sub.parent !== undefined
+                && !sub.is_run) {
+                sub.update();
+            }
+        }
+    });
+    let getData = obb_1.computed(data, subscriber);
+    subscriber.mount();
+}
+exports.nextEntrySibling = nextEntrySibling;
+
+
+/***/ }),
+
+/***/ "./js/core/runtime/siblings.ts":
+/*!*************************************!*\
+  !*** ./js/core/runtime/siblings.ts ***!
+  \*************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NodeList = exports.Children = exports.Sibling = void 0;
+const obb_1 = __webpack_require__(/*! ../../obb/js/obb */ "./js/obb/js/obb.ts");
+const ELEMENT_TO_LAST_SIBLING = new WeakMap();
+class Sibling {
+    constructor(target, prev) {
+        this.target = target;
+        this.prev = prev;
+        this.nodes = [];
+        this.siblings = [];
+        if (prev || (this.prev = prev = ELEMENT_TO_LAST_SIBLING.get(target))) {
+            if (prev.next) {
+                prev.next.prev = this;
+                this.next = prev.next;
+            }
+            prev.next = this;
+        }
+        ELEMENT_TO_LAST_SIBLING.set(target, this);
+    }
+    setNodes(val) {
+        if (!this.target) {
+            //console.log("warn", this);
+            return;
+        }
+        let nodes = this.nodes;
+        let has_bak = nodes.length;
+        let bak_nodes = has_bak && nodes.slice();
+        has_bak && this.removeAllNodes();
+        this.addNodes(val, bak_nodes);
+    }
+    moveTo(to) {
+        let from = this.index;
+        let parent = this.parent;
+        //console.log("moveTo", from, to);
+        if (from === to) {
+            return;
+        }
+        else if (!parent) {
+            debugger;
+        }
+        let siblings = parent.siblings;
+        siblings.splice(from, 1);
+        let first_sibling = this.firstSibling();
+        let last_sibling = this.lastSibling();
+        let prev_sibling = first_sibling.prev;
+        let next_sibling = last_sibling.next;
+        if (prev_sibling) {
+            prev_sibling.next = next_sibling;
+        }
+        if (next_sibling) {
+            next_sibling.prev = prev_sibling;
+        }
+        let to_first_sibling = siblings[to] || parent.lastSibling().next;
+        let first_node = to_first_sibling && to_first_sibling.firstNode();
+        let to_prev_sibling = to_first_sibling ? to_first_sibling.prev : parent.lastSibling();
+        first_node ? this.insertBefore(first_node) : this.appendTo();
+        if (to_prev_sibling) {
+            to_prev_sibling.next = first_sibling;
+        }
+        if (to_first_sibling) {
+            to_first_sibling.prev = last_sibling;
+        }
+        first_sibling.prev = to_prev_sibling;
+        last_sibling.next = to_first_sibling;
+        to = Math.min(to, siblings.length);
+        siblings.splice(to, 0, this);
+        for (let i = Math.min(from, to), limit = Math.max(from, to); i <= limit; i++) {
+            siblings[i].index = i;
+        }
+    }
+    firstNode() {
+        let nodes = this.nodes;
+        return nodes.length ? nodes[0] : this.next && this.next.firstNode();
+    }
+    firstSibling() {
+        return this;
+    }
+    lastSibling() {
+        let last_sibling = this.siblings[this.siblings.length - 1];
+        return last_sibling ? last_sibling.lastSibling() : this;
+    }
+    nextSibling() {
+        if (!this.target) {
+            //console.log("warn", this);
+            return this;
+        }
+        let new_sibling = new this.constructor(this.target, this.lastSibling());
+        let siblings = this.siblings;
+        new_sibling.parent = this;
+        new_sibling.index = siblings.length;
+        siblings.push(new_sibling);
+        return new_sibling;
+    }
+    removeAllSibling() {
+        let siblings = this.siblings;
+        for (let i = siblings.length - 1; i >= 0; i--) {
+            this.removeSibling(siblings[i]);
+        }
+    }
+    removeSibling(sibling) {
+        let siblings = this.siblings;
+        let index = sibling.index;
+        if (siblings[index] === sibling) {
+            let prev_sibling = sibling.prev;
+            let last_sibling = sibling.lastSibling();
+            let next_sibling = last_sibling.next;
+            sibling.prev = null;
+            last_sibling.next = null;
+            if (prev_sibling) {
+                prev_sibling.next = next_sibling;
+            }
+            if (next_sibling) {
+                next_sibling.prev = prev_sibling;
+            }
+            sibling.setNodes(null);
+            siblings.splice(index, 1);
+            while (index < siblings.length) {
+                siblings[index++].index -= 1;
+            }
+            sibling.removeAllSibling();
+            sibling.target = null;
+        }
+        else {
+            debugger;
+        }
+    }
+    destory() {
+        this.parent.removeSibling(this);
+    }
+}
+exports.Sibling = Sibling;
+class Children extends Sibling {
+    constructor() {
+        super(...arguments);
+        this.insertBefore = (referenceNode) => {
+            let parentNode = referenceNode.parentElement;
+            for (let node of this.nodes) {
+                parentNode.insertBefore(node, referenceNode);
+            }
+            for (let sibling of this.siblings) {
+                sibling.insertBefore(referenceNode);
+            }
+        };
+    }
+    appendTo() {
+        for (let node of this.nodes) {
+            this.target.appendChild(node);
+        }
+        for (let sibling of this.siblings) {
+            sibling.appendTo();
+        }
+    }
+    removeAllNodes() {
+        for (let node of this.nodes) {
+            let parent = node.parentElement;
+            parent && parent.removeChild(node);
+        }
+        this.nodes.length = 0;
+    }
+    addNodes(val, reuses) {
+        if (val === undefined || val === null) {
+            return;
+        }
+        let nodes = this.nodes;
+        let node;
+        switch (true) {
+            case val instanceof Node:
+                nodes.push(node = val);
+                break;
+            case val instanceof Array:
+                for (let item of val) {
+                    this.addNodes(item, reuses);
+                }
+                return;
+            default:
+                /**
+                 * 复用大部分在数据特征鉴定部分完成（nextEntrySibling autorun），
+                 * 这里仅做对 TextNode 的简单处理
+                 */
+                if (reuses && reuses.length && reuses[0].nodeType === Node.TEXT_NODE) {
+                    _webx.setText(node = reuses.shift(), val);
+                }
+                else {
+                    node = _webx.createTextNode(val);
+                }
+                nodes.push(node);
+                break;
+        }
+        let reference_node = this.next && this.next.firstNode();
+        reference_node
+            ? _webx.insertBefore(this.target, node, reference_node)
+            : _webx.appendChild(this.target, node);
+    }
+}
+exports.Children = Children;
+class NodeList extends Sibling {
+    constructor(target, prev) {
+        super(target, prev);
+        this.insertBefore = (referenceNode) => {
+            let list = this.target;
+            let raw_list = this.raw;
+            let nodes = this.nodes;
+            if (nodes.length) {
+                let index = raw_list.indexOf(referenceNode);
+                list.splice(raw_list.indexOf(nodes[0]), nodes.length);
+                for (let node of nodes) {
+                    list.splice(index, 0, node);
+                }
+            }
+            for (let sibling of this.siblings) {
+                sibling.insertBefore(referenceNode);
+            }
+        };
+        this.raw = obb_1.Observer.TO_RAW(target);
+    }
+    /*setNodes = sandbox(
+        // target 可能是可观测对象，这里用 sanbox 防止当前操作所需数据被订阅
+        super.setNodes.bind(this),
+        SANDOBX_OPTION.PREVENT_COLLECT
+    )*/
+    setNodes(val) {
+        /**
+         * 基础功能使用 subscriber.option 比 sandbox 效率 更高一些
+         * 现有的使用 sibling 管理节点执行环境中不存 Subscriber.PARENT 为空的情况
+         */
+        let subscriber = obb_1.Subscriber.PARENT;
+        let option = subscriber.option;
+        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
+        super.setNodes(val);
+        subscriber.option = option;
+    }
+    moveTo(to) {
+        let subscriber = obb_1.Subscriber.PARENT;
+        let option = subscriber.option;
+        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
+        super.moveTo(to);
+        subscriber.option = option;
+    }
+    removeSibling(sibling) {
+        let subscriber = obb_1.Subscriber.PARENT;
+        let option = subscriber.option;
+        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
+        super.removeSibling(sibling);
+        subscriber.option = option;
+    }
+    appendTo() {
+        let list = this.target;
+        let raw_list = this.raw; //使用 raw_list 是为了在一定不产生变更的操作中节省开销
+        let nodes = this.nodes;
+        if (nodes.length) {
+            list.splice(raw_list.indexOf(nodes[0]), nodes.length);
+            for (let node of nodes) {
+                list.push(node);
+            }
+        }
+        for (let sibling of this.siblings) {
+            sibling.appendTo();
+        }
+    }
+    removeAllNodes() {
+        let list = this.target;
+        let raw_list = this.raw;
+        for (let node of this.nodes) {
+            list.splice(raw_list.indexOf(node), 1);
+        }
+        this.nodes.length = 0;
+    }
+    addNodes(val, reuses) {
+        if (val === undefined || val === null) {
+            return;
+        }
+        let nodes = this.nodes;
+        let node;
+        switch (true) {
+            case val instanceof Node:
+                nodes.push(node = val);
+                break;
+            case val instanceof Array:
+                for (let item of val) {
+                    this.addNodes(item, reuses);
+                }
+                return;
+            default:
+                /**
+                 * 复用大部分在数据特征鉴定部分完成（nextEntrySibling autorun），
+                 * 这里仅做对 TextNode 的简单处理
+                 */
+                if (reuses && reuses.length && reuses[0].nodeType === Node.TEXT_NODE) {
+                    _webx.setText(node = reuses.shift(), val);
+                }
+                else {
+                    node = _webx.createTextNode(val);
+                }
+                nodes.push(node);
+                break;
+        }
+        let reference_node = this.next && this.next.firstNode();
+        let list = this.target;
+        let raw_list = this.raw;
+        if (reference_node) {
+            list.splice(raw_list.indexOf(reference_node), 0, node);
+        }
+        else {
+            list.push(node);
+        }
+    }
+}
+exports.NodeList = NodeList;
+
+
+/***/ }),
+
+/***/ "./js/obb/js/obb.ts":
+/*!**************************!*\
+  !*** ./js/obb/js/obb.ts ***!
+  \**************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MASK_UNDEFINED = exports.MASK_ITERATE = exports.reaction = exports.watch = exports.computed = exports.SUBSCRIBE_OPTION = exports.transacts = exports.runInSandbox = exports.sandbox = exports.runInAction = exports.action = exports.runInAtom = exports.atom = exports.autorun = exports.observable = exports.Subscriber = exports.Observer = void 0;
+var SUBSCRIBE_OPTION;
+(function (SUBSCRIBE_OPTION) {
+    SUBSCRIBE_OPTION[SUBSCRIBE_OPTION["DEFAULT"] = 0] = "DEFAULT";
+    SUBSCRIBE_OPTION[SUBSCRIBE_OPTION["PREVENT_COLLECT"] = 1] = "PREVENT_COLLECT";
+    SUBSCRIBE_OPTION[SUBSCRIBE_OPTION["COMPUTED"] = 2] = "COMPUTED";
+})(SUBSCRIBE_OPTION || (SUBSCRIBE_OPTION = {}));
+exports.SUBSCRIBE_OPTION = SUBSCRIBE_OPTION;
+// ------------------------------------------------------
+const GLOBAL = typeof window === "object" ? window : global;
+const SUBSCRIBER_STACK = [];
+const REACTION_STATE_LIST = [];
+const REACTION_TARGET_LIST = [];
+const ACTION_STACK = [];
+const OBSERVER_MAP = new WeakMap();
+const SANDBOX_STACK = [];
+const MASK_ITERATE = ["iterate"];
+exports.MASK_ITERATE = MASK_ITERATE;
+const MASK_UNDEFINED = ["undefined"];
+exports.MASK_UNDEFINED = MASK_UNDEFINED;
+class Observer {
+    constructor(target) {
+        this.target = target;
+        this.refmap = new Map();
+        this.ownmap = new Map();
+        this._has = (key) => {
+            return key in this.target;
+        };
+        this._val = (key) => {
+            return this.target[key];
+        };
+        this._del = (key) => {
+            return delete this.target[key];
+        };
+        this._set = (key, value) => {
+            return this.target[key] = value;
+        };
+        this._proxy_handler = {
+            get: (target, prop) => {
+                //console.log("get", target, prop);
+                let value = target[prop];
+                if (prop !== "__proto__") { //target.hasOwnProperty(prop) // 允许收集未定义属性
+                    value = observable(value);
+                    this.collect(prop);
+                }
+                return value;
+            },
+            set: (target, prop, value) => {
+                //console.log("set", target, prop, value);
+                let bak_value = target[prop];
+                let ob = OBSERVER_MAP.get(value);
+                let raw_value = ob ? ob.target : value;
+                let own = target.hasOwnProperty(prop);
+                let eq = equal(bak_value, raw_value);
+                if (!eq || !own) {
+                    _runInPlain(() => {
+                        target[prop] = raw_value;
+                        if (!own) {
+                            this.notify(prop, false, 1 /* OWN */);
+                            this.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                        }
+                        if (!eq) {
+                            this.notify(prop, bak_value);
+                        }
+                        //this.notify(MASK_ITERATE, MASK_ITERATE, RECORD_TYPE.REF);
+                    });
+                }
+                return true;
+            },
+            ownKeys: (target) => {
+                this.collect(MASK_ITERATE, 1 /* OWN */);
+                return ownKeys(target);
+            },
+            has: (target, key) => {
+                this.collect(key, 1 /* OWN */);
+                return key in target;
+            },
+            deleteProperty: (target, key) => {
+                //console.log("deleteProperty",target,key);
+                return _runInPlain(() => {
+                    if (target.hasOwnProperty(key)) {
+                        this.notify(key, target[key]);
+                        this.notify(key, true, 1 /* OWN */);
+                        this.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                        //this.notify(MASK_ITERATE, MASK_ITERATE, RECORD_TYPE.REF);
+                    }
+                    return delete target[key];
+                });
+            },
+        };
+        switch (true) {
+            case target instanceof WeakSet:
+            case target instanceof WeakMap:
+            case target instanceof Map:
+            case target instanceof Set:
+                obInternalData(this);
+                break;
+            case target[Symbol.iterator]: // array-like
+            case target instanceof Array:
+                obArray(this);
+                break;
+        }
+        this.proxy = new Proxy(target, this._proxy_handler);
+        OBSERVER_MAP.set(this.proxy, this);
+        OBSERVER_MAP.set(target, this);
+    }
+    static TO_RAW(obj) {
+        let ob = OBSERVER_MAP.get(obj);
+        return ob ? ob.target : obj;
+    }
+    static TO_OB(obj) {
+        return OBSERVER_MAP.get(obj);
+    }
+    collect(prop, type = 2 /* REF */) {
+        let subscriber = SUBSCRIBER_STACK[0];
+        if (subscriber && !(subscriber.option & SUBSCRIBE_OPTION.PREVENT_COLLECT)) {
+            let map = this._map(type);
+            let ref = map.get(prop);
+            ref || map.set(prop, ref = new Set());
+            subscriber.depend(ref);
+        }
+    }
+    release() {
+        for (let map of [this.refmap, this.ownmap]) {
+            map.forEach(set => {
+                set.forEach(sub => sub.undepend(set));
+            });
+            map.clear();
+        }
+    }
+    notify(prop, value, type = 2 /* REF */) {
+        let record = [this, prop, value, type];
+        SANDBOX_STACK.length && SANDBOX_STACK[0][0 /* RECORDS */].push(record);
+        let set = this._map(type).get(prop);
+        if (set && set.size) {
+            if (ACTION_STACK.length) {
+                set.forEach(sub => sub.addRecord(record));
+            }
+            else {
+                let reactions;
+                let min_depth = Number.MAX_SAFE_INTEGER;
+                set.forEach(sub => {
+                    reactions.push(sub);
+                    min_depth > sub.depth && (min_depth = sub.depth);
+                });
+                deepReactive(reactions, min_depth);
+            }
+        }
+    }
+    _map(type) {
+        return type & 2 /* REF */ ? this.refmap : this.ownmap;
+    }
+}
+exports.Observer = Observer;
+class Subscriber {
+    constructor(fn, option = SUBSCRIBE_OPTION.DEFAULT) {
+        this.fn = fn;
+        this.option = option;
+        this.depth = 0;
+        this.children = [];
+        this._deps = new Set();
+        this.is_run = false;
+        this.brokens = [];
+        this.accu = 0;
+    }
+    static get PARENT() {
+        return SUBSCRIBER_STACK[0];
+    }
+    undepend(set) {
+        this._deps.delete(set);
+        set.delete(this);
+    }
+    depend(set) {
+        this._deps.add(set);
+        set.add(this);
+        if (this.option & SUBSCRIBE_OPTION.COMPUTED
+            && this.parent && this.parent.parent !== undefined) {
+            this.parent.depend(set);
+        }
+    }
+    clear(shallow) {
+        this._deps.forEach(ref => ref.delete(this));
+        this._deps.clear();
+        if (!shallow) {
+            for (let child of this.children) {
+                child.clear();
+                child.parent = undefined;
+            }
+        }
+        this.children.length = 0;
+    }
+    unmount(shallow) {
+        this.clear(shallow);
+        if (!shallow) {
+            let siblings = this.parent && this.parent.children;
+            siblings && siblings.splice(siblings.indexOf(this), 1);
+            if (this._sandbox) {
+                let index = this._sandbox[1 /* SUBSCRIBERS */].indexOf(this);
+                index >= 0 && this._sandbox[1 /* SUBSCRIBERS */].splice(index, 1);
+            }
+        }
+        this._sandbox = undefined;
+        this.parent = undefined;
+    }
+    mount(parent) {
+        if (this.parent !== undefined) {
+            // 可能存者一个 Subscriber 实例发生递归 mount 或其他复用执行的情况
+            return new Subscriber(this.fn).mount(parent);
+        }
+        this.parent = parent || SUBSCRIBER_STACK[0];
+        if (this.parent) {
+            if (this.parent.parent === undefined) {
+                /**
+                 * 可能存在挂载下一个子订阅时当前订阅已被释放（当前订阅方法执行过程中产生更改导致上级订阅刷新）
+                 * 这不一定是使用放方发生错误，但挂载方不应该错误的允许此行为
+                 */
+                this.parent = undefined;
+                return this;
+            }
+            this.depth = this.parent.depth + 1;
+        }
+        else {
+            this.parent = null;
+        }
+        if (SANDBOX_STACK.length) {
+            this._sandbox = SANDBOX_STACK[0];
+            this._sandbox[1 /* SUBSCRIBERS */].push(this);
+        }
+        this.parent && this.parent.children.push(this);
+        this._run();
+        return this;
+    }
+    update() {
+        this.clear();
+        return this._run();
+    }
+    addRecord(record) {
+        let depth = ACTION_STACK[0][0 /* DEPTH */];
+        let index = REACTION_TARGET_LIST.indexOf(this);
+        if (index < 0 || REACTION_STATE_LIST[index][0 /* DEPTH */] < depth) {
+            REACTION_STATE_LIST.unshift([depth, [record]]);
+            REACTION_TARGET_LIST.unshift(this);
+        }
+        else {
+            REACTION_STATE_LIST[index][1 /* RECORDS */].push(record);
+        }
+        if (this.option & SUBSCRIBE_OPTION.COMPUTED
+            && this.parent && this.parent.parent !== undefined) {
+            this.parent.addRecord(record);
+        }
+    }
+    _run() {
+        this.is_run = true;
+        SUBSCRIBER_STACK.unshift(this);
+        this.accu += 1;
+        try {
+            return this.res = this.fn();
+        }
+        catch (e) {
+            throw e;
+        }
+        finally {
+            SUBSCRIBER_STACK.shift();
+            this.is_run = false;
+            this.brokens.length = 0;
+        }
+    }
+}
+exports.Subscriber = Subscriber;
+function ownKeys(obj) {
+    //return Reflect.ownKeys(target);
+    return Array.prototype.concat.call(Object.getOwnPropertySymbols(obj), Object.getOwnPropertyNames(obj));
+}
+function transacts(option, fn, ...args) {
+    transacting(option);
+    try {
+        return fn(...args);
+    }
+    catch (e) {
+        throw e;
+    }
+    finally {
+        transacted();
+    }
+}
+exports.transacts = transacts;
+function atom(fn) {
+    return transacts.bind(null, fn, 2 /* ATOM */);
+}
+exports.atom = atom;
+const runInAtom = transacts.bind(null, 2 /* ATOM */);
+exports.runInAtom = runInAtom;
+const _runInPlain = transacts.bind(null, 18 /* PLAIN */);
+function action(fn) {
+    return transacts.bind(null, 1 /* ACTION */, fn);
+}
+exports.action = action;
+const runInAction = transacts.bind(null, 1 /* ACTION */);
+exports.runInAction = runInAction;
+function sandbox(fn, option = 7 /* DEFAULT */) {
+    return _runInSandbox.bind(null, option, fn);
+}
+exports.sandbox = sandbox;
+const runInSandbox = _runInSandbox.bind(null, 7 /* DEFAULT */);
+exports.runInSandbox = runInSandbox;
+function _runInSandbox(option, fn, ...args) {
+    let parent_sandbox = SANDBOX_STACK[0];
+    let parent_subscrber = SUBSCRIBER_STACK[0];
+    let bakopt = parent_subscrber && parent_subscrber.option;
+    let subs = option & 4 /* CLEAN_CHANGE */ || !parent_sandbox
+        ? []
+        : parent_sandbox[1 /* SUBSCRIBERS */];
+    let start = subs.length;
+    let records = option & 4 /* CLEAN_CHANGE */ || !parent_sandbox
+        ? []
+        : parent_sandbox[0 /* RECORDS */];
+    parent_subscrber && (parent_subscrber.option = option & 1 /* PREVENT_COLLECT */
+        ? (bakopt | SUBSCRIBE_OPTION.PREVENT_COLLECT)
+        : (bakopt & ~SUBSCRIBE_OPTION.PREVENT_COLLECT));
+    SANDBOX_STACK.unshift([
+        records,
+        subs,
+        option | (
+        // 用于外部判断逻辑，使能根据上层 sandbox 配置过滤掉不应当的订阅响应
+        parent_sandbox
+            && parent_sandbox[2 /* OPTION */] & 4 /* CLEAN_CHANGE */)
+    ]);
+    try {
+        return fn(...args);
+    }
+    catch (e) {
+        throw e;
+    }
+    finally {
+        SANDBOX_STACK.shift();
+        if (option & 4 /* CLEAN_CHANGE */) {
+            cleanChanges(records);
+        }
+        if (option & 2 /* CLEAN_SUBSCRIBE */) {
+            for (let i = subs.length - 1; i >= start; i--) {
+                let sub = subs[i];
+                sub.unmount(sub.parent !== parent_subscrber);
+            }
+            subs.length = start; //节省消耗，unmount 参数 1 不一定都是 true
+        }
+        else if (parent_sandbox && option & 4 /* CLEAN_CHANGE */) {
+            Array.prototype.push.apply(parent_sandbox[1 /* SUBSCRIBERS */], subs);
+        }
+        parent_subscrber && (parent_subscrber.option = bakopt);
+    }
+}
+function cleanChanges(records) {
+    let volatile_records = [];
+    diffRecords(records, function (record) {
+        let ob = record[0 /* OBSERVER */];
+        let key = record[1 /* KEY */];
+        let type = record[3 /* TYPE */];
+        if (type & 1 /* OWN */) {
+            // 当前方法非返回 -1 则不会出现 type === RECORD_TYPE.OWN 
+            // 而 value 不为 false 的情况
+            ob._del(key);
+        }
+        else if (~type & 4 /* READONLY */) {
+            if (type & 8 /* VOLATILE */) {
+                volatile_records.push(record);
+                return;
+            }
+            ob._set(key, record[2 /* VALUE */]);
+        }
+    });
+    for (let record of volatile_records) {
+        record[0 /* OBSERVER */]._set(record[1 /* KEY */], record[2 /* VALUE */]);
+    }
+}
+function autorun(fn) {
+    let sub = new Subscriber(fn);
+    sub.mount();
+    return function disposer() {
+        sub.unmount();
+    };
+}
+exports.autorun = autorun;
+/*
+const BUILTIN_LITERAL_SET = new Set(
+    [Date, RegExp, Number, String, Blob]
+);//[Date, RegExp, Number, String], GLOBAL.BigInt
+*/
+const SHOULD_OBSERVABLE_SET = new Set([
+    Object, Array, Map, Set, WeakMap, WeakSet,
+]);
+function observable(obj) {
+    if (obj && typeof obj === "object") {
+        let ob = OBSERVER_MAP.get(obj);
+        if (ob) {
+            obj = ob.proxy;
+        }
+        else {
+            let constructor = obj.constructor;
+            if (SHOULD_OBSERVABLE_SET.has(constructor)
+                || GLOBAL[constructor.name] !== constructor) {
+                obj = new Observer(obj).proxy;
+            }
+        }
+    }
+    return obj;
+}
+exports.observable = observable;
+function computed(calc, parent = null) {
+    let value;
+    let changed = 0;
+    let subscriber = new Subscriber(function () {
+        if (changed ^= 1) {
+            value = calc();
+        }
+    }, SUBSCRIBE_OPTION.COMPUTED);
+    subscriber.parent = parent;
+    return function () {
+        changed || subscriber.update();
+        return value;
+    };
+}
+exports.computed = computed;
+function watch(handle, watcher, immediately) {
+    let value_stack = [];
+    let subscriber = new Subscriber(function () {
+        value_stack.unshift(handle());
+        if (value_stack.length > 1) {
+            let [new_val, old_val] = value_stack;
+            equal(new_val, old_val) || watcher(new_val, old_val);
+        }
+        else if (value_stack.length === 1 && immediately) {
+            watcher(value_stack[0]);
+        }
+        value_stack.length = 1;
+    });
+    subscriber.mount();
+    return function disposer() {
+        subscriber.unmount();
+    };
+}
+exports.watch = watch;
+function reaction(handle, watcher) {
+    return watch(handle, function (new_val, old_val) {
+        equal(new_val, old_val) || watcher(new_val);
+    });
+}
+exports.reaction = reaction;
+function transacting(option) {
+    let action = ACTION_STACK[0];
+    let hook;
+    if (option === undefined) {
+        option = action
+            ? action[1 /* TYPE */] & 2 /* ATOM */
+            : 1 /* DEFAULT */;
+    }
+    else if (typeof option !== "number") {
+        hook = option.hook;
+        option = option.option;
+    }
+    ACTION_STACK.unshift([
+        ACTION_STACK.length,
+        option,
+        hook
+    ]);
+}
+function diffRecords(records, callback) {
+    let obj_map = new Map();
+    let res = false;
+    for (let record of records) {
+        let ob = record[0 /* OBSERVER */];
+        let key = record[1 /* KEY */];
+        let key_set = obj_map.get(ob);
+        if (key_set) {
+            if (key_set.has(key)) {
+                continue;
+            }
+            else {
+                key_set.add(key);
+            }
+        }
+        else {
+            obj_map.set(ob, new Set([key]));
+        }
+        if (equal(record[3 /* TYPE */] !== 1 /* OWN */
+            ? ob._val(key)
+            : ob._has(key), record[2 /* VALUE */])) {
+            continue;
+        }
+        if (!callback) {
+            return true;
+        }
+        else if (callback(record) === -1) {
+            key_set.delete(key);
+        }
+        res = true;
+    }
+    return res;
+}
+function transacted() {
+    let reactions = [];
+    let reaction_depth = Number.MAX_SAFE_INTEGER;
+    let action = ACTION_STACK.shift();
+    let depth = action[0 /* DEPTH */];
+    let hook = action[2 /* HOOK */];
+    if (ACTION_STACK.length !== 0
+        && (action[1 /* TYPE */] & (18 /* PLAIN */ & ~2 /* ATOM */)
+            || action[1 /* TYPE */] & 2 /* ATOM */
+                && ACTION_STACK[0][1 /* TYPE */] & 2 /* ATOM */)) {
+        return;
+    }
+    while (REACTION_TARGET_LIST.length
+        && REACTION_STATE_LIST[0][0 /* DEPTH */] >= depth) {
+        let subscriber = REACTION_TARGET_LIST.shift();
+        let state = REACTION_STATE_LIST.shift();
+        if (reactions.indexOf(subscriber) < 0
+            && diffRecords(state[1 /* RECORDS */])) {
+            let index;
+            while ((index = REACTION_TARGET_LIST.lastIndexOf(subscriber)) >= 0) {
+                REACTION_TARGET_LIST.splice(index, 1);
+                REACTION_STATE_LIST.splice(index, 1);
+            }
+            reaction_depth = Math.min(reaction_depth, subscriber.depth);
+            reactions.unshift(subscriber);
+        }
+    }
+    hook && hook(reactions);
+    if (reactions.length) {
+        if (action[1 /* TYPE */] & 8 /* WRAPUP */) {
+            runInAction(function () {
+                deepReactive(reactions, reaction_depth);
+            });
+        }
+        else {
+            deepReactive(reactions, reaction_depth);
+        }
+    }
+}
+function deepReactive(reactions, min_depth = 0) {
+    let sandbox = SANDBOX_STACK[0];
+    let includes = sandbox
+        && sandbox[2 /* OPTION */] & 4 /* CLEAN_CHANGE */
+        && sandbox[1 /* SUBSCRIBERS */];
+    const inScoped = function (sub) {
+        return !includes || includes.indexOf(sub) >= 0;
+    };
+    let sub;
+    let index;
+    next: for (let i = reactions.length - 1; i >= 0; i--) {
+        sub = reactions[i];
+        if (sub.option & SUBSCRIBE_OPTION.COMPUTED) {
+            reactions.splice(i, 1);
+            sub.update();
+            continue;
+        }
+        while ((sub = sub.parent) && sub.depth >= min_depth) {
+            if (sub.is_run || !inScoped(sub)) {
+                break;
+            }
+            index = reactions.indexOf(sub);
+            if (index >= 0) {
+                reactions[index].brokens.unshift(reactions[i]);
+                //reactions[i].brokens.length = 0;
+                reactions.splice(i, 1);
+                continue next;
+            }
+        }
+        sub = reactions[i];
+        if (sub.is_run || !inScoped(sub)) {
+            reactions.splice(i, 1);
+        }
+    }
+    for (let i = 0; i < reactions.length; i++) {
+        sub = reactions[i];
+        sub.parent !== undefined && sub.update();
+    }
+}
+function equal(a, b) {
+    return a === b || a !== a && b !== b;
+}
+function obArray(ob) {
+    let target = ob.target;
+    let prototype = target.__proto__;
+    let original = ob._proxy_handler.set;
+    target.__proto__ = Object.create(prototype, Array.prototype.concat.call(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'].map(
+    // 一个方法可能产生多次变更，这里使可能的多次变更最多对应一次订阅响应
+    function (key) {
+        const original = prototype[key];
+        return original && [key, function () {
+                let args = arguments;
+                return _runInPlain(() => original.apply(this, args));
+            }];
+    }), ["values", Symbol.iterator].map(
+    // 对于内部隐藏实现，这里使之产生相应的订阅
+    function (key) {
+        const original = prototype[key];
+        return original && [key, function () {
+                //ob.collect(MASK_ITERATE, RECORD_TYPE.REF);
+                ob.collect(MASK_ITERATE, 1 /* OWN */);
+                let index = 0;
+                let proxy = ob.proxy;
+                return {
+                    next() {
+                        let done = index >= target.length;
+                        let value;
+                        if (!done) {
+                            ob.collect(index);
+                            value = proxy[index++];
+                        }
+                        return { done, value };
+                    }
+                };
+                //return obIterator(target, original);
+            }];
+    })).reduce(function (prototype, patch) {
+        patch && (prototype[patch[0]] = { value: patch[1] });
+        return prototype;
+    }, {}));
+    ob._proxy_handler.set = function (_target, key, value) {
+        let length = target.length;
+        return _runInPlain(function () {
+            let res = original(_target, key, value);
+            target.length !== length
+                && ob.notify("length", length, 10 /* REF_AND_VOLATILE */);
+            return res;
+        });
+    };
+}
+function obInternalData(ob) {
+    var _a;
+    let target = ob.target;
+    let prototype = target.__proto__;
+    let internal_ob = new Observer({});
+    let _size = ((_a = Object.getOwnPropertyDescriptor(prototype, "size")) === null || _a === void 0 ? void 0 : _a.get.bind(target)) || function () { };
+    let is_map = target instanceof Map || target instanceof WeakMap;
+    ob.release = function () {
+        internal_ob.release();
+        return ob.release();
+    };
+    internal_ob._has = prototype.has.bind(target);
+    if (is_map) {
+        internal_ob._val = function (key) {
+            return prototype.get.call(target, key);
+            ;
+        };
+    }
+    else {
+        internal_ob._val = function (value) {
+            return prototype.has.call(target, value) ? value : MASK_UNDEFINED;
+        };
+    }
+    internal_ob._del = function (key) {
+        return prototype.delete.call(target, key);
+    };
+    internal_ob._set = prototype.set
+        ? function (key, value) {
+            return prototype.set.call(target, key, value);
+        } : function (key, value) {
+        return prototype.add.call(target, key);
+    };
+    function gen_enters_value(value) {
+        internal_ob.collect(value[0]);
+        return [value[0], observable(value[1])];
+    }
+    function gen_value(value) {
+        internal_ob.collect(value[0]);
+        return observable(value[1]);
+    }
+    let proxyMethods = Object.assign({ get(key) {
+            internal_ob.collect(key);
+            return observable(prototype.get.call(target, key));
+        },
+        set(key, value) {
+            let kob = OBSERVER_MAP.get(key);
+            kob && (key = kob.target);
+            let has_key = prototype.has.call(target, key);
+            let bak_value = has_key ? prototype.get.call(target, key) : MASK_UNDEFINED;
+            if (!has_key || !equal(bak_value, value)) {
+                _runInPlain(() => {
+                    prototype.set.call(target, key, value);
+                    if (!has_key) {
+                        internal_ob.notify(key, false, 1 /* OWN */);
+                        internal_ob.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                    }
+                    internal_ob.notify(key, bak_value);
+                });
+            }
+            return this;
+        },
+        add(key) {
+            if (!prototype.has.call(target, key)) {
+                _runInPlain(() => {
+                    let size = _size();
+                    prototype.add.call(target, key);
+                    size !== undefined && ob.notify("size", size, 6 /* REF_AND_READONLY */);
+                    internal_ob.notify(key, false, 1 /* OWN */);
+                    internal_ob.notify(key, MASK_UNDEFINED);
+                    internal_ob.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                });
+            }
+            return this;
+        },
+        delete(key) {
+            let get = prototype.get;
+            let value = get ? get.call(target, key) : key;
+            let size = _size();
+            let res = prototype.delete.call(target, key);
+            if (res) {
+                _runInPlain(() => {
+                    internal_ob.notify(key, value);
+                    internal_ob.notify(key, true, 1 /* OWN */);
+                    internal_ob.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                    size !== undefined && ob.notify("size", size, 6 /* REF_AND_READONLY */);
+                });
+            }
+            return res;
+        },
+        clear() {
+            let size = _size();
+            if (!size) {
+                return;
+            }
+            _runInPlain(() => {
+                prototype.forEach.call(target, (value, key) => {
+                    internal_ob.notify(key, value);
+                    internal_ob.notify(key, true, 1 /* OWN */);
+                });
+                internal_ob.notify(MASK_ITERATE, MASK_ITERATE, 1 /* OWN */);
+                ob.notify("size", size, 6 /* REF_AND_READONLY */);
+                prototype.clear.call(target);
+            });
+        },
+        forEach(cb, ...args) {
+            internal_ob.collect(MASK_ITERATE, 1 /* OWN */);
+            return prototype.forEach.call(target, function (value, ...rest) {
+                cb(observable(value), ...rest);
+            }, ...args);
+        },
+        has(value) {
+            internal_ob.collect(value, 1 /* OWN */);
+            let res = prototype.has.call(target, value);
+            return res;
+        }, size: _size }, [
+        ["keys", (value) => value[0]],
+        ["entries", gen_enters_value],
+        ["values", gen_value],
+        [Symbol.iterator, is_map ? gen_enters_value : gen_value]
+    ].reduce(function (res, [key, _value]) {
+        let original = prototype["entries" /*key*/];
+        if (original) {
+            res[key] = function () {
+                internal_ob.collect(MASK_ITERATE, 1 /* OWN */);
+                let iterator = original.call(target);
+                let originalNext = iterator.next.bind(iterator);
+                iterator.next = function () {
+                    let { done, value } = originalNext();
+                    if (!done) {
+                        value = _value(value);
+                    }
+                    return { done, value };
+                };
+                return iterator;
+            };
+        }
+        return res;
+    }, {}));
+    let descriptors = {}; // Object.getOwnPropertyDescriptors(prototype);
+    let keys = ownKeys(prototype);
+    for (let key of keys) {
+        let proxy = proxyMethods[key];
+        let descriptor = Object.getOwnPropertyDescriptor(prototype, key);
+        if (proxy) {
+            if (descriptor.value !== undefined) {
+                descriptor.value = proxy;
+            }
+            else {
+                descriptor.get = proxy;
+            }
+        }
+        descriptors[key] = descriptor;
+    }
+    target.__proto__ = Object.create(target.__proto__.__proto__, descriptors);
+}
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
+
+/***/ }),
+
+/***/ "./js/runtime.js":
+/*!***********************!*\
+  !*** ./js/runtime.js ***!
+  \***********************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module exports are unknown */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _core_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./core/runtime */ "./js/core/runtime/index.ts");
+/* harmony import */ var _core_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_core_runtime__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _core_runtime__WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _core_runtime__WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+
+
+/***/ }),
+
+/***/ "./node_modules/webpack/buildin/global.js":
+/*!***********************************!*\
+  !*** (webpack)/buildin/global.js ***!
+  \***********************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || new Function("return this")();
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ })
+
+/******/ })));
 //# sourceMappingURL=runtime.js.map
