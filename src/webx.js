@@ -4192,7 +4192,7 @@ class default_1 extends character_1.default {
         this.error_logs.push.apply(this.error_logs, arguments);
     }
     init(input) {
-        this.line_number = 0;
+        this.line_number = 1;
         this.line_start = 0;
         this.index = 0;
         this.input = input;
@@ -4608,8 +4608,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.runtime = exports.convert = void 0;
 const proxy_1 = __webpack_require__(/*! ./proxy */ "./js/core/converter/proxy.ts");
 const astgen_1 = __webpack_require__(/*! ./astgen */ "./js/core/converter/astgen.ts");
-function convert(ast) {
-    return new proxy_1.ProxyNode(ast).node;
+function convert(ast, external_declarations) {
+    let used_declarators;
+    if (external_declarations) {
+        used_declarators = new Set();
+        proxy_1.ProxyNode.isExternalDeclaration = function (id) {
+            if (external_declarations.includes(id)) {
+                used_declarators.add(id);
+                return true;
+            }
+        };
+    }
+    let res = new proxy_1.ProxyNode(ast).node;
+    proxy_1.ProxyNode.isExternalDeclaration = null;
+    return external_declarations ? [res, Array.from(used_declarators)] : res;
 }
 exports.convert = convert;
 let id = astgen_1.IDENTIFIER("_webx");
@@ -4909,6 +4921,22 @@ const runtime = {
                 },
                 computed: false
             }
+        },
+        {
+            type: "VariableDeclarator",
+            id: {
+                type: "Identifier",
+                name: "_webx_create_component"
+            },
+            init: {
+                type: "MemberExpression",
+                object: id,
+                property: {
+                    type: "Identifier",
+                    name: "createComponent"
+                },
+                computed: false
+            }
         }
     ]
 };
@@ -4963,8 +4991,14 @@ exports.BINDING_DECLARATION = exports.SET_ATTRIBUTE = exports.NEXT_BLOCK_SIBLING
 const parser_1 = __webpack_require__(/*! ../parser */ "./js/core/parser/index.ts");
 const operations_1 = __webpack_require__(/*! ./operations */ "./js/core/converter/operations.ts");
 const astgen_1 = __webpack_require__(/*! ./astgen */ "./js/core/converter/astgen.ts");
-function NEXT_NODES(expr, depth) {
-    return astgen_1.CALL_STATEMENT(astgen_1.IDENTIFIER("_webx_next_nodes"), astgen_1.IDENTIFIER("_webx_t_sibling" + depth), expr);
+function NEXT_NODES(expr, depth, is_reactive) {
+    let args = [
+        astgen_1.IDENTIFIER("_webx_next_nodes"),
+        astgen_1.IDENTIFIER("_webx_t_sibling" + depth),
+        expr
+    ];
+    is_reactive && args.push(astgen_1.LITERAL(1));
+    return astgen_1.CALL_STATEMENT.apply(null, args);
 }
 function SET_NODES(expr, depth) {
     return astgen_1.CALL_STATEMENT(astgen_1.IDENTIFIER("_webx_set_nodes"), astgen_1.IDENTIFIER("_webx_t_sibling" + depth), expr);
@@ -5047,14 +5081,16 @@ function NEXT_CHILD(getter, is_reactive) {
     ];
     if (getter) {
         if (is_reactive) {
-            args.push(operations_1._AutoRun(astgen_1.FUNCTION_EXPRESSION(astgen_1.RETURN_STATEMENT(getter))));
+            args.push(operations_1._AutoRun(getter));
             args.push(astgen_1.LITERAL(1));
+            /*args.push(_AutoRun(FUNCTION_EXPRESSION(RETURN_STATEMENT(getter))));
+            args.push(LITERAL(1));*/
         }
         else {
             args.push(getter);
         }
     }
-    return astgen_1.CALL_STATEMENT.apply(null, args);
+    return astgen_1.CALL_EXPRESSION.apply(null, args);
 }
 function NEXT_CHILD_STATEMENT(getter, is_reactive) {
     return astgen_1.EXPRESSION_STATEMENT(NEXT_CHILD(getter, is_reactive));
@@ -5109,7 +5145,7 @@ function polyfill(node, depth, binding) {
             if (type === "Literal"
                 || type === "Element") {
                 child_count += 1;
-                return NEXT_NODES(expression, depth - 1);
+                return NEXT_NODES(expression, depth - 1, type === "Element");
             }
             else if (binding
                 || type === "Identifier"
@@ -5249,48 +5285,115 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PROPS_TO_EXPRESSION = exports.ACTION_EXPRESSION = exports.RUN_IN_ACTION_STATEMENT = exports.OBSERVABLEABLE = exports.AUTORUN_STATEMENT = exports.PREVENT = exports.AUTORUN = exports.CREATE_ELEMENT = exports.CREATE_COMPONENT = exports.SPLIT_VARIABLE_DECLARATION = exports.SET_MODEL_REACTIVE = exports.ADD_EVENT_LISTENER = exports.ENTRY_STATEMENT = exports.AutoRun = exports._AutoRun = void 0;
 const astgen_1 = __webpack_require__(/*! ./astgen */ "./js/core/converter/astgen.ts");
 const utils_1 = __webpack_require__(/*! ./utils */ "./js/core/converter/utils.ts");
-function CREATE_COMPONENT(id, operations) {
-    let body = [
-        astgen_1.VARIABLE_DECLARATION([
-            astgen_1.VARABLE_DECLARATOR("_webx$_props", OBSERVABLEABLE({
-                type: "ObjectExpression",
-                properties: [
-                    {
-                        type: "Property",
-                        key: {
-                            "type": "Identifier",
-                            "name": "children"
-                        },
-                        computed: false,
-                        value: astgen_1.ARRAY_EXPRESSION(),
-                        kind: "init",
-                        method: false,
-                        shorthand: false
-                    }
-                ]
-            }))
-        ]),
-        astgen_1.VARIABLE_DECLARATION([
-            astgen_1.VARABLE_DECLARATOR("_webx_el", astgen_1.MEMBER_EXPRESSION(astgen_1.IDENTIFIER("_webx$_props"), astgen_1.IDENTIFIER("children")))
+function CREATE_COMPONENT(id, props, children) {
+    let args = [astgen_1.IDENTIFIER(id)];
+    if (props.length || children.length) {
+        args.push(props.length
+            ? _AutoRun(astgen_1.FUNCTION_EXPRESSION(props, [astgen_1.IDENTIFIER("_webx$_props")]), true)
+            : astgen_1.LITERAL(0));
+        children.length && args.push(_AutoRun(astgen_1.FUNCTION_EXPRESSION(children, [astgen_1.IDENTIFIER("_webx_el")]), true));
+    }
+    return astgen_1.CALL_EXPRESSION(astgen_1.IDENTIFIER("_webx_create_component"), ...args);
+    /*
+    let data = OBSERVABLEABLE({
+        type: "ObjectExpression",
+        properties: []
+    });
+    if (!props.length && !children.length) {
+        //如果返回的是 Expression 该结果将不能动态变更 例如  CREATE_ELEMENT 内的 <br/>
+        return RETURN_STATEMENT(CALL_EXPRESSION(IDENTIFIER(id), data));
+    }
+
+    let component = CALL_EXPRESSION(IDENTIFIER(id), IDENTIFIER("_webx$_props"));
+    let body: Array<Node> = [
+        VARIABLE_DECLARATION([
+            VARABLE_DECLARATOR(
+                "_webx$_props",
+                data
+            )
         ])
     ];
-    operations && body.push(...operations);
-    body.push(astgen_1.RETURN_STATEMENT(astgen_1.CALL_EXPRESSION(astgen_1.IDENTIFIER(id), astgen_1.IDENTIFIER("_webx$_props"))));
-    return AUTORUN(body, true);
+
+
+    body.push(...props);
+
+    if (children && children.length) {
+        body.push(VARIABLE_DECLARATION([
+            VARABLE_DECLARATOR(
+                "_webx_el",
+                OBSERVABLEABLE(ARRAY_EXPRESSION())
+            )
+        ]));
+        component.arguments.push(IDENTIFIER("_webx_el"));
+        body.push(
+            VARIABLE_DECLARATION([
+                VARABLE_DECLARATOR("_webx_cmp", component)
+            ]),
+            {
+                type: "IfStatement",
+                test: {
+                    type: "LogicalExpression",
+                    operator: "||",
+                    left: {
+                        type: "BinaryExpression",
+                        operator: "===",
+                        left: {
+                            type: "Identifier",
+                            name: "_webx_cmp"
+                        },
+                        right: {
+                            type: "Literal",
+                            value: null,
+                            raw: "null"
+                        }
+                    },
+                    right: {
+                        type: "BinaryExpression",
+                        operator: "===",
+                        left: {
+                            type: "Identifier",
+                            name: "_webx_cmp"
+                        },
+                        right: {
+                            type: "Identifier",
+                            name: "undefined"
+                        }
+                    }
+                },
+                consequent: {
+                    type: "ReturnStatement",
+                    argument: null
+                }
+            }
+        );
+
+        body.push(...children);
+        body.push(ASSIGNMENT_STATEMENT(
+            MEMBER_EXPRESSION(IDENTIFIER("_webx$_props"), IDENTIFIER("children")),
+            IDENTIFIER("_webx_el")
+        ))
+        body.push(RETURN_STATEMENT(IDENTIFIER("_webx_cmp")));
+    } else {
+        body.push(RETURN_STATEMENT(component));
+    }
+    return body;*/
+    //return AUTORUN(body, true);
 }
 exports.CREATE_COMPONENT = CREATE_COMPONENT;
-function CREATE_ELEMENT(tag, operations) {
-    if (!operations || !operations.length) {
-        return astgen_1.CALL_EXPRESSION(astgen_1.IDENTIFIER("_webx_create_element"), astgen_1.LITERAL(tag));
+function CREATE_ELEMENT(tag, props, children) {
+    let element = astgen_1.CALL_EXPRESSION(astgen_1.IDENTIFIER("_webx_create_element"), astgen_1.LITERAL(tag));
+    if (!props.length && !children.length) {
+        return element;
     }
     let body = [
         astgen_1.VARIABLE_DECLARATION([
-            astgen_1.VARABLE_DECLARATOR("_webx_el", astgen_1.CALL_EXPRESSION(astgen_1.IDENTIFIER("_webx_create_element"), astgen_1.LITERAL(tag)))
-        ])
+            astgen_1.VARABLE_DECLARATOR("_webx_el", element)
+        ]),
+        ...children,
+        ...props,
+        astgen_1.RETURN_STATEMENT(astgen_1.IDENTIFIER("_webx_el"))
     ];
-    body.push(...operations);
-    body.push(astgen_1.RETURN_STATEMENT(astgen_1.IDENTIFIER("_webx_el")));
-    return AUTORUN(body, true);
+    return body; //AUTORUN(body, true);
 }
 exports.CREATE_ELEMENT = CREATE_ELEMENT;
 function ADD_EVENT_LISTENER(...args) {
@@ -5447,6 +5550,7 @@ const operations_1 = __webpack_require__(/*! ./operations */ "./js/core/converte
 const astgen_1 = __webpack_require__(/*! ./astgen */ "./js/core/converter/astgen.ts");
 const utils_1 = __webpack_require__(/*! ./utils */ "./js/core/converter/utils.ts");
 const index_1 = __webpack_require__(/*! ./index */ "./js/core/converter/index.ts");
+const parser_1 = __webpack_require__(/*! ../parser */ "./js/core/parser/index.ts");
 const EXTEND_PROPS = [
     "FUNCTION_DECLARES" /* FUNCTION_DECLARES */,
     "FUNCTION_SCOPED_STACK" /* FUNCTION_SCOPED_STACK */,
@@ -5600,7 +5704,7 @@ function _paramsToDeclaration(node) {
                 || pattern_set[0][1][0].type !== "Identifier")) {
             has_convert = true;
             for (let [id, props] of pattern_set) {
-                body.splice(0, 0, astgen_1.VARIABLE_DECLARATION([astgen_1.VARABLE_DECLARATOR(id, operations_1.PROPS_TO_EXPRESSION(props))]));
+                body.unshift(astgen_1.VARIABLE_DECLARATION([astgen_1.VARABLE_DECLARATOR(id, operations_1.PROPS_TO_EXPRESSION(props))]));
             }
             params[i] = id;
         }
@@ -5683,10 +5787,8 @@ const CAPTURE_HOOKS = {
         for (let specifier of node.specifiers) {
             switch (specifier.type) {
                 case "ImportDefaultSpecifier":
-                    setDeclare(this["FUNCTION_SCOPED_STACK" /* FUNCTION_SCOPED_STACK */][0], specifier.local.name, [specifier.local]);
-                    break;
                 case "ImportSpecifier":
-                    setDeclare(this["FUNCTION_SCOPED_STACK" /* FUNCTION_SCOPED_STACK */][0], node.imported.name, [specifier.imported]);
+                    setDeclare(this["FUNCTION_SCOPED_STACK" /* FUNCTION_SCOPED_STACK */][0], specifier.local.name, [specifier.local]);
                     break;
             }
         }
@@ -5875,9 +5977,35 @@ function setDeclare(declaration_node, id, props, is_block_declares) {
         ? declaration
         : (declares[name] = [])).unshift(scoped_node, declaration_node, props);
 }
+function createNode(proxy_node, body, is_reactive) {
+    var _a;
+    let parent = (_a = proxy_node.parent.parent) === null || _a === void 0 ? void 0 : _a.node;
+    let node;
+    if (parent
+        && parent.type === "CallExpression"
+        && (parent.callee.name === "_webx_next_child"
+            || parent.callee.name === "_webx_next_nodes")) {
+        if (is_reactive) {
+            parent.arguments[3] = astgen_1.LITERAL(1);
+            node = parser_1.isExpression(body) ? body : operations_1._AutoRun(astgen_1.FUNCTION_EXPRESSION(body), true);
+        }
+        else {
+            parent.arguments.length = 2;
+            node = body;
+        }
+    }
+    else {
+        node = is_reactive && !parser_1.isExpression(body)
+            ? operations_1.AUTORUN(body, true)
+            : is_reactive === true ? astgen_1.CALL_EXPRESSION(body) : body;
+    }
+    node.range = proxy_node.node.range;
+    node.loc = proxy_node.node.loc;
+    return node;
+}
 function createComponent(node) {
-    let content = [];
-    let props = astgen_1.IDENTIFIER("_webx$_props");
+    let props = [];
+    let children = [];
     for (let attribute of node.openingTag.attributes) {
         let attribute_name = attribute.name;
         let attribute_value = attribute.value || astgen_1.LITERAL("");
@@ -5886,11 +6014,11 @@ function createComponent(node) {
             is_binding = true;
             attribute_value = attribute_value.expression;
         }
-        let set_attribute = astgen_1.ASSIGNMENT_STATEMENT(astgen_1.MEMBER_EXPRESSION(props, attribute_name), attribute_value);
-        content.push(is_binding ? operations_1.AUTORUN_STATEMENT(set_attribute) : set_attribute);
+        let set_attribute = astgen_1.ASSIGNMENT_STATEMENT(astgen_1.MEMBER_EXPRESSION(astgen_1.IDENTIFIER("_webx$_props"), attribute_name), attribute_value);
+        props.push(is_binding ? operations_1.AUTORUN_STATEMENT(set_attribute) : set_attribute);
     }
-    node.children && buildChildren(node.children, content);
-    return operations_1.CREATE_COMPONENT(node.openingTag.name, content);
+    node.children && buildChildren(node.children, children);
+    return createNode(this, operations_1.CREATE_COMPONENT(node.openingTag.name, props, children), true);
 }
 const ATTRIBUTE_TO_EVENT = {
     value: "input",
@@ -5906,26 +6034,31 @@ function createElement(node) {
          */
         return 0;
     }
-    if (maybe_component && this["BLOCK_DECLARES" /* BLOCK_DECLARES */]["-" + tag_name]) {
+    if (maybe_component
+        && (this["BLOCK_DECLARES" /* BLOCK_DECLARES */]["-" + tag_name]
+            ||
+                ProxyNode.isExternalDeclaration
+                    && ProxyNode.isExternalDeclaration(tag_name))) {
         return createComponent.call(this, node);
     }
-    let content = [];
-    node.children && buildChildren(node.children, content);
+    let props = [];
+    let children = [];
+    node.children && buildChildren(node.children, children);
     for (let attribute of node.openingTag.attributes) {
         let attribute_name = attribute.name.name;
         let attribute_value = attribute.value || astgen_1.LITERAL("");
-        content.push(nodes_1.SET_ATTRIBUTE(attribute_name, attribute_value, /^(on[^_-]*)|(value|id|checked)$/.test(attribute_name)));
+        props.push(nodes_1.SET_ATTRIBUTE(attribute_name, attribute_value, /^(on[^_-]*)|(value|id|checked)$/.test(attribute_name)));
         switch (tag_name) {
             case "select":
             case "input":
                 if (attribute_value.type === "BindingExpression") {
                     let event = ATTRIBUTE_TO_EVENT[attribute_name];
-                    content.push(operations_1.SET_MODEL_REACTIVE(event, attribute_value.expression, attribute_name));
+                    props.push(operations_1.SET_MODEL_REACTIVE(event, attribute_value.expression, attribute_name));
                 }
                 break;
         }
     }
-    return operations_1.CREATE_ELEMENT(tag_name, content);
+    return createNode(this, operations_1.CREATE_ELEMENT(node.openingTag.name, props, children), props.length || children.length);
 }
 function buildChildren(target_nodes, bind_nodes) {
     for (let node of target_nodes) {
@@ -5939,6 +6072,7 @@ function buildChildren(target_nodes, bind_nodes) {
                 continue;
             case "Element":
                 getter = node;
+                is_reactive = true;
                 break;
             case "BindingStatement":
                 node = node.statement;
@@ -5959,7 +6093,10 @@ function buildChildren(target_nodes, bind_nodes) {
                 node = body[0];
             case "BindingExpression":
                 getter = node.expression;
-                is_reactive = getter.type !== "Literal";
+                if (getter.type !== "Literal") {
+                    is_reactive = true;
+                    getter = astgen_1.FUNCTION_EXPRESSION(astgen_1.RETURN_STATEMENT(getter));
+                }
                 break;
             case "CSSRule":
                 buildChildren(node.children, bind_nodes);
@@ -6162,6 +6299,34 @@ function makeMarks(scoped_node) {
     }
 }
 exports.makeMarks = makeMarks;
+function isPurelyReactiveExpression(expr) {
+    switch (expr.type) {
+        case "Identifier":
+            if (!/^_webx\$_/.test(expr.name)) {
+                return false;
+            }
+        case "Literal":
+            return true;
+        case "MemberExpression":
+            if (expr.property.type === "Literal"
+                || !expr.computed &&
+                    expr.property.type === "Identifier") {
+                return isPurelyReactiveExpression(expr.object);
+            }
+            break;
+    }
+    return false;
+    /*if (expr.type === "MemberExpression"
+        && expr.object.type === "Identifier"
+        && /^_webx\$_/.test(expr.object.name)
+        && (
+            !expr.computed &&
+            expr.property.type === "Identifier"
+            || expr.property.type === "Literal"
+        )) {
+
+    }*/
+}
 function makeObserver(scoped_node, depth) {
     var _a;
     let reference_records = scoped_node["REFERENCE_RECORD" /* REFERENCE_RECORD */];
@@ -6251,20 +6416,15 @@ function makeObserver(scoped_node, depth) {
                                  * 间接的响应代理等同于直接的引用捕获
                                  */
                                 if (value.length === 3
-                                    && (declarator_init.type === "MemberExpression"
-                                        && declarator_init.object.type === "Identifier"
-                                        && /^_webx\$_/.test(declarator_init.object.name)
-                                        && (declarator_init.property.type === "Identifier"
-                                            || declarator_init.property.type === "Literal"))) {
+                                    && isPurelyReactiveExpression(declarator_init)) {
                                     observer_map[key] = declarator_init;
                                     base_id -= 1;
                                     scoped_list.splice(pos, 1);
                                     continue;
                                 }
-                                if (scoped_node["SCOPE_STATUS" /* SCOPE_STATUS */] & 2 /* AUTORUN */
-                                    && !(declarator_init.type === "Literal"
-                                        || declarator_init.type === "Identifier"
-                                            && /^_webx\$_/.test(declarator_init.name))) {
+                                if (!(declarator_init.type === "Literal"
+                                    || declarator_init.type === "Identifier"
+                                        && /^_webx\$_/.test(declarator_init.name))) {
                                     init_statement = operations_1.AUTORUN_STATEMENT(init_statement);
                                 }
                                 scoped_list.splice(pos, 1, init_statement);
@@ -6565,10 +6725,11 @@ function scan_tag(tokenizer, start) {
     return tag;
 }
 function left_tag_filter(tokenizer) {
-    if ((/^<|<\/$/.test(tokenizer.curly_stack[0]))) {
+    /*if ((/^<|<\/$/.test(tokenizer.curly_stack[0]))) {
         debugger;
     }
-    return !(/^<|<\/$/.test(tokenizer.curly_stack[0]));
+    return !(/^<|<\/$/.test(tokenizer.curly_stack[0]));*/
+    return true;
 }
 let WEBX_PUNCTUATORS = index_1.PUNCTUATORS.concat({
     key: ">", type: "TagPunctuator",
@@ -7183,8 +7344,8 @@ __webpack_require__.r(__webpack_exports__);
 
 let parser = new _core_parser__WEBPACK_IMPORTED_MODULE_1___default.a();
 
-function webx(source) {
-  return Object(_core_converter__WEBPACK_IMPORTED_MODULE_0__["convert"])(parser.parseModule(source));
+function webx(source, external_declarations) {
+  return Object(_core_converter__WEBPACK_IMPORTED_MODULE_0__["convert"])(parser.parseModule(source), external_declarations);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (webx);

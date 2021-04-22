@@ -2,7 +2,8 @@
 
 const path = require("path");
 const { default: webx } = require("./webx");
-const runtime = path.join(__dirname, "../src/runtime.js")
+const runtime = path.join(__dirname, "./runtime.js");
+const router = path.join(__dirname, "./router.js");
 const { default: generate } = require('@babel/generator')
 
 module.exports = function (source) {
@@ -10,7 +11,43 @@ module.exports = function (source) {
     const loaderContext = this;
     const filename = path.basename(loaderContext.resourcePath)
 
-    let ast = webx(source);
+    let [ast, used_declarators] = webx(source, ["Router", "RouterLink"]);
+
+    if (used_declarators.length) {
+        ast.body.unshift({
+            "type": "ImportDeclaration",
+            "specifiers": [
+                {
+                    "type": "ImportSpecifier",
+                    "local": {
+                        "type": "Identifier",
+                        "name": "Router"
+                    },
+                    "imported": {
+                        "type": "Identifier",
+                        "name": "Router"
+                    }
+                },
+                {
+                    "type": "ImportSpecifier",
+                    "local": {
+                        "type": "Identifier",
+                        "name": "RouterLink"
+                    },
+                    "imported": {
+                        "type": "Identifier",
+                        "name": "RouterLink"
+                    }
+                }
+            ],
+            "source": {
+                "type": "Literal",
+                "value": router,
+                "raw": `"${router}"`
+            }
+        }
+        )
+    }
 
     ast.body.unshift({
         "type": "ImportDeclaration",
@@ -68,8 +105,8 @@ function toBabelAst(node) {
     for (let key in node) {
         switch (key) {
             case "loc":
-                node.loc.start.line += 1;
-                node.loc.end.line += 1;
+            /*node.loc.start.line += 1;
+            node.loc.end.line += 1;*/
             case "range":
                 break;
             default:

@@ -95,9 +95,9 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(global) {
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createTextNode = exports.createElement = exports.insertBefore = exports.appendChild = exports.addEventListener = exports.setText = exports.setAttribute = exports.removeAllSibling = exports.entryStatement = exports.nextEntrySibling = exports.nextIfSibling = exports.setNodes = exports.nextNodes = exports.nextSibling = exports.nextChild = exports.observable = exports.runInAction = exports.action = exports.autorun = exports.prevent = void 0;
+exports.createComponent = exports.createTextNode = exports.createElement = exports.insertBefore = exports.appendChild = exports.removeNode = exports.addEventListener = exports.setText = exports.setAttribute = exports.removeAllSibling = exports.entryStatement = exports.nextEntrySibling = exports.nextIfSibling = exports.setNodes = exports.nextNodes = exports.nextSibling = exports.nextChild = exports.observable = exports.runInAction = exports.action = exports.autorun = exports.prevent = void 0;
 const obb_1 = __webpack_require__(/*! ../../obb/js/obb */ "./js/obb/js/obb.ts");
 Object.defineProperty(exports, "observable", { enumerable: true, get: function () { return obb_1.observable; } });
 Object.defineProperty(exports, "action", { enumerable: true, get: function () { return obb_1.action; } });
@@ -124,8 +124,23 @@ function nextSibling(sibling) {
     return sibling.nextSibling();
 }
 exports.nextSibling = nextSibling;
-function nextNodes(sibling, els) {
-    return sibling.nextSibling().setNodes(els);
+function nextNodes(sibling, els, is_reactive) {
+    let next_sibling = sibling.nextSibling();
+    if (!is_reactive) {
+        next_sibling.setNodes(els);
+        return;
+    }
+    autorun(function () {
+        let res = els();
+        if (res instanceof Array) {
+            autorun(function () {
+                next_sibling.setNodes(res);
+            });
+        }
+        else {
+            next_sibling.setNodes(res);
+        }
+    }, true);
 }
 exports.nextNodes = nextNodes;
 function nextChild(el, getter, is_reactive, passive) {
@@ -133,7 +148,15 @@ function nextChild(el, getter, is_reactive, passive) {
     if (getter !== undefined) {
         is_reactive
             ? autorun(function () {
-                sibling.setNodes(getter());
+                let res = getter();
+                if (res instanceof Array) {
+                    autorun(function () {
+                        sibling.setNodes(res);
+                    });
+                }
+                else {
+                    sibling.setNodes(res);
+                }
             }, passive)
             : sibling.setNodes(getter);
     }
@@ -148,13 +171,18 @@ exports.setAttribute = setAttribute;
 function setText(node, text) {
     //console.log("setText:", { node, text });
     // CharacterData
-    node.data = text;
+    node.data !== text && (node.data = text);
 }
 exports.setText = setText;
 function addEventListener(el, ...args) {
     el.addEventListener(...args);
 }
 exports.addEventListener = addEventListener;
+function removeNode(child) {
+    let el = child.parentElement;
+    el && el.removeChild(child);
+}
+exports.removeNode = removeNode;
 function appendChild(el, child) {
     el.appendChild(child);
 }
@@ -177,6 +205,60 @@ function setNodes(sibling, els) {
     sibling.setNodes(els);
 }
 exports.setNodes = setNodes;
+function createComponent(component, gen_props, gen_children) {
+    switch (true) {
+        case gen_props && gen_children && true:
+            return function () {
+                let props = obb_1.observable({
+                    children: []
+                });
+                gen_props(props);
+                let res = component(props);
+                if (res === null || res === undefined) {
+                    return;
+                }
+                //gen_children(props.children);
+                obb_1.runInAction(function () {
+                    /**
+                     * 避免构造 children 的过程中订阅了 props.children 的过程发生
+                     * props.children.length 至 n 的 n 次回调
+                     * 使用 action 后 component 首次收到空的 props.children
+                     * 后续 children 构造完毕 action 方法结束 component
+                     * 内的 props.children 订阅得到一次更新
+                     */
+                    gen_children(props.children);
+                });
+                return res;
+            };
+        case gen_children && true:
+            return function () {
+                let props = obb_1.observable({
+                    children: []
+                });
+                let res = component(props);
+                if (res === null || res === undefined) {
+                    return;
+                }
+                //gen_children(props.children);
+                obb_1.runInAction(function () {
+                    gen_children(props.children);
+                });
+                return res;
+            };
+        case gen_props && true:
+            return function () {
+                let props = obb_1.observable({});
+                gen_props(props);
+                let res = component(props);
+                return res;
+            };
+        default:
+            return function () {
+                return component(obb_1.observable({}));
+            };
+    }
+}
+exports.createComponent = createComponent;
 let webx = {
     prevent,
     autorun,
@@ -194,12 +276,14 @@ let webx = {
     setAttribute,
     setText,
     addEventListener,
+    removeNode,
     appendChild,
     insertBefore,
     createElement,
-    createTextNode
+    createTextNode,
+    createComponent
 };
-typeof window === "object" && (window._webx = webx);
+(typeof window === "object" ? window : global)._webx = webx;
 exports.default = webx;
 /*
 function validate(sib: Sibling) {
@@ -216,6 +300,7 @@ function validate(sib: Sibling) {
     return sib
 }*/ 
 
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
 
@@ -482,17 +567,6 @@ class Sibling {
         }
         ELEMENT_TO_LAST_SIBLING.set(target, this);
     }
-    setNodes(val) {
-        if (!this.target) {
-            //console.log("warn", this);
-            return;
-        }
-        let nodes = this.nodes;
-        let has_bak = nodes.length;
-        let bak_nodes = has_bak && nodes.slice();
-        has_bak && this.removeAllNodes();
-        this.addNodes(val, bak_nodes);
-    }
     moveTo(to) {
         let from = this.index;
         let parent = this.parent;
@@ -594,6 +668,19 @@ class Sibling {
     }
 }
 exports.Sibling = Sibling;
+function unfold(val) {
+    let vessel = [];
+    _walk(val);
+    return vessel;
+    function _walk(list) {
+        if (list instanceof Array) {
+            list.forEach(_walk);
+        }
+        else if (list !== null && list !== undefined) {
+            vessel.push(list);
+        }
+    }
+}
 class Children extends Sibling {
     constructor() {
         super(...arguments);
@@ -607,6 +694,62 @@ class Children extends Sibling {
             }
         };
     }
+    setNodes(val) {
+        if (!this.target) {
+            //console.log("warn", this);
+            return;
+        }
+        let parent = this.target;
+        let raw_nodes = unfold(val);
+        let old_nodes = this.nodes;
+        let new_nodes = [];
+        let reference_node = this.next && this.next.firstNode();
+        raw_nodes.length ? _walk() : _final();
+        this.nodes = new_nodes;
+        function _final() {
+            for (let i = new_nodes.length; i < old_nodes.length; i++) {
+                let old_node = old_nodes[i];
+                new_nodes.includes(old_node) || _webx.removeNode(old_node);
+            }
+        }
+        function _walk() {
+            let index = new_nodes.length;
+            let new_node = raw_nodes.shift();
+            let old_node = old_nodes[index];
+            if (!(new_node instanceof Node)) {
+                if (index < old_nodes.length
+                    && old_node.nodeType === Node.TEXT_NODE) {
+                    _webx.setText(old_node, new_node);
+                    new_node = old_node;
+                }
+                else {
+                    new_node = _webx.createTextNode(new_node);
+                }
+            }
+            if (index < old_nodes.length) {
+                if (old_node !== new_node
+                    && !raw_nodes.includes(old_node)
+                    && !new_nodes.includes(old_node)) {
+                    _webx.removeNode(old_node);
+                }
+            }
+            new_nodes.push(new_node);
+            raw_nodes.length ? _walk() : _final();
+            /**
+             * 使用递归的处理和 previousSibling 对比等操作主要是维持原有 DOM 的稳定性
+             * （减少由于列表变更导致 insert append 等操作造成的 DOM 刷新）
+             */
+            if (reference_node) {
+                if (reference_node.previousSibling !== new_node) {
+                    _webx.insertBefore(parent, new_node, reference_node);
+                }
+            }
+            else {
+                _webx.appendChild(parent, new_node);
+            }
+            reference_node = new_node;
+        }
+    }
     appendTo() {
         for (let node of this.nodes) {
             this.target.appendChild(node);
@@ -614,47 +757,6 @@ class Children extends Sibling {
         for (let sibling of this.siblings) {
             sibling.appendTo();
         }
-    }
-    removeAllNodes() {
-        for (let node of this.nodes) {
-            let parent = node.parentElement;
-            parent && parent.removeChild(node);
-        }
-        this.nodes.length = 0;
-    }
-    addNodes(val, reuses) {
-        if (val === undefined || val === null) {
-            return;
-        }
-        let nodes = this.nodes;
-        let node;
-        switch (true) {
-            case val instanceof Node:
-                nodes.push(node = val);
-                break;
-            case val instanceof Array:
-                for (let item of val) {
-                    this.addNodes(item, reuses);
-                }
-                return;
-            default:
-                /**
-                 * 复用大部分在数据特征鉴定部分完成（nextEntrySibling autorun），
-                 * 这里仅做对 TextNode 的简单处理
-                 */
-                if (reuses && reuses.length && reuses[0].nodeType === Node.TEXT_NODE) {
-                    _webx.setText(node = reuses.shift(), val);
-                }
-                else {
-                    node = _webx.createTextNode(val);
-                }
-                nodes.push(node);
-                break;
-        }
-        let reference_node = this.next && this.next.firstNode();
-        reference_node
-            ? _webx.insertBefore(this.target, node, reference_node)
-            : _webx.appendChild(this.target, node);
     }
 }
 exports.Children = Children;
@@ -666,11 +768,9 @@ class NodeList extends Sibling {
             let raw_list = this.raw;
             let nodes = this.nodes;
             if (nodes.length) {
-                let index = raw_list.indexOf(referenceNode);
                 list.splice(raw_list.indexOf(nodes[0]), nodes.length);
-                for (let node of nodes) {
-                    list.splice(index, 0, node);
-                }
+                let index = raw_list.indexOf(referenceNode);
+                list.splice(index, 0, ...nodes);
             }
             for (let sibling of this.siblings) {
                 sibling.insertBefore(referenceNode);
@@ -678,35 +778,49 @@ class NodeList extends Sibling {
         };
         this.raw = obb_1.Observer.TO_RAW(target);
     }
-    /*setNodes = sandbox(
-        // target 可能是可观测对象，这里用 sanbox 防止当前操作所需数据被订阅
-        super.setNodes.bind(this),
-        SANDOBX_OPTION.PREVENT_COLLECT
-    )*/
     setNodes(val) {
-        /**
-         * 基础功能使用 subscriber.option 比 sandbox 效率 更高一些
-         * 现有的使用 sibling 管理节点执行环境中不存 Subscriber.PARENT 为空的情况
-         */
-        let subscriber = obb_1.Subscriber.PARENT;
-        let option = subscriber.option;
-        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
-        super.setNodes(val);
-        subscriber.option = option;
-    }
-    moveTo(to) {
-        let subscriber = obb_1.Subscriber.PARENT;
-        let option = subscriber.option;
-        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
-        super.moveTo(to);
-        subscriber.option = option;
-    }
-    removeSibling(sibling) {
-        let subscriber = obb_1.Subscriber.PARENT;
-        let option = subscriber.option;
-        subscriber.option = option | obb_1.SUBSCRIBE_OPTION.PREVENT_COLLECT;
-        super.removeSibling(sibling);
-        subscriber.option = option;
+        if (!this.target) {
+            //console.log("warn", this);
+            return;
+        }
+        let raw_nodes = unfold(val);
+        let old_nodes = this.nodes;
+        let new_nodes = [];
+        let old_node;
+        let new_node;
+        let cursor = 0;
+        while (raw_nodes.length) {
+            new_node = raw_nodes.shift();
+            if (!(new_node instanceof Node)) {
+                if (cursor < old_nodes.length
+                    && (old_node = old_nodes[cursor]).nodeType === Node.TEXT_NODE) {
+                    if (_webx.getText(old_node) != new_node) {
+                        _webx.setText(old_node, new_node);
+                    }
+                    new_node = old_node;
+                }
+                else {
+                    new_node = _webx.createTextNode(new_node);
+                }
+            }
+            new_nodes.push(new_node);
+            cursor += 1;
+        }
+        let list = this.target;
+        let raw_list = this.raw;
+        if (old_nodes.length) {
+            list.splice(raw_list.indexOf(old_nodes[0]), old_nodes.length, ...new_nodes);
+        }
+        else {
+            let reference_node = this.next && this.next.firstNode();
+            if (reference_node) {
+                list.splice(raw_list.indexOf(reference_node), 0, ...new_nodes);
+            }
+            else {
+                list.push(...new_nodes);
+            }
+        }
+        this.nodes = new_nodes;
     }
     appendTo() {
         let list = this.target;
@@ -725,48 +839,10 @@ class NodeList extends Sibling {
     removeAllNodes() {
         let list = this.target;
         let raw_list = this.raw;
-        for (let node of this.nodes) {
-            list.splice(raw_list.indexOf(node), 1);
-        }
-        this.nodes.length = 0;
-    }
-    addNodes(val, reuses) {
-        if (val === undefined || val === null) {
-            return;
-        }
         let nodes = this.nodes;
-        let node;
-        switch (true) {
-            case val instanceof Node:
-                nodes.push(node = val);
-                break;
-            case val instanceof Array:
-                for (let item of val) {
-                    this.addNodes(item, reuses);
-                }
-                return;
-            default:
-                /**
-                 * 复用大部分在数据特征鉴定部分完成（nextEntrySibling autorun），
-                 * 这里仅做对 TextNode 的简单处理
-                 */
-                if (reuses && reuses.length && reuses[0].nodeType === Node.TEXT_NODE) {
-                    _webx.setText(node = reuses.shift(), val);
-                }
-                else {
-                    node = _webx.createTextNode(val);
-                }
-                nodes.push(node);
-                break;
-        }
-        let reference_node = this.next && this.next.firstNode();
-        let list = this.target;
-        let raw_list = this.raw;
-        if (reference_node) {
-            list.splice(raw_list.indexOf(reference_node), 0, node);
-        }
-        else {
-            list.push(node);
+        if (nodes.length) {
+            list.splice(raw_list.indexOf(nodes[0]), nodes.length);
+            nodes.length = 0;
         }
     }
 }
@@ -947,6 +1023,7 @@ class Subscriber {
         this.depth = 0;
         this.children = [];
         this._deps = new Set();
+        this._once = {};
         this.is_run = false;
         this.brokens = [];
         this.accu = 0;
@@ -971,13 +1048,29 @@ class Subscriber {
         this._deps.clear();
         if (!shallow) {
             for (let child of this.children) {
+                child.emit("unmount");
                 child.clear();
                 child.parent = undefined;
             }
         }
         this.children.length = 0;
     }
+    once(event, callback) {
+        let once_map = this._once;
+        (once_map[event] || (once_map[event] = [])).push(callback);
+    }
+    emit(event) {
+        let once_map = this._once;
+        let tasks = once_map[event];
+        if (tasks) {
+            for (let task of tasks) {
+                task();
+            }
+            delete once_map[event];
+        }
+    }
     unmount(shallow) {
+        this.emit("unmount");
         this.clear(shallow);
         if (!shallow) {
             let siblings = this.parent && this.parent.children;
@@ -1019,14 +1112,15 @@ class Subscriber {
         return this;
     }
     update() {
+        //this.emit("update");
         this.clear();
         return this._run();
     }
     addRecord(record) {
-        let depth = ACTION_STACK[0][0 /* DEPTH */];
         let index = REACTION_TARGET_LIST.indexOf(this);
-        if (index < 0 || REACTION_STATE_LIST[index][0 /* DEPTH */] < depth) {
-            REACTION_STATE_LIST.unshift([depth, [record]]);
+        if (index < 0
+            || REACTION_STATE_LIST[index][0 /* DEPTH */] < ACTION_STACK.length) {
+            REACTION_STATE_LIST.unshift([ACTION_STACK.length, [record]]);
             REACTION_TARGET_LIST.unshift(this);
         }
         else {
@@ -1235,21 +1329,12 @@ function reaction(handle, watcher) {
 exports.reaction = reaction;
 function transacting(option) {
     let action = ACTION_STACK[0];
-    let hook;
     if (option === undefined) {
         option = action
-            ? action[1 /* TYPE */] & 2 /* ATOM */
+            ? action[0 /* TYPE */] & 2 /* ATOM */
             : 1 /* DEFAULT */;
     }
-    else if (typeof option !== "number") {
-        hook = option.hook;
-        option = option.option;
-    }
-    ACTION_STACK.unshift([
-        ACTION_STACK.length,
-        option,
-        hook
-    ]);
+    ACTION_STACK.unshift([option]);
 }
 function diffRecords(records, callback) {
     let obj_map = new Map();
@@ -1287,13 +1372,31 @@ function diffRecords(records, callback) {
 function transacted() {
     let reactions = [];
     let reaction_depth = Number.MAX_SAFE_INTEGER;
+    let depth = ACTION_STACK.length;
     let action = ACTION_STACK.shift();
-    let depth = action[0 /* DEPTH */];
-    let hook = action[2 /* HOOK */];
-    if (ACTION_STACK.length !== 0
-        && (action[1 /* TYPE */] & (18 /* PLAIN */ & ~2 /* ATOM */)
-            || action[1 /* TYPE */] & 2 /* ATOM */
-                && ACTION_STACK[0][1 /* TYPE */] & 2 /* ATOM */)) {
+    if (depth > 1
+        && (action[0 /* TYPE */] & (18 /* PLAIN */ & ~2 /* ATOM */)
+            || action[0 /* TYPE */] & 2 /* ATOM */
+                && ACTION_STACK[0][0 /* TYPE */] & 2 /* ATOM */)) {
+        let attach_reaction_state_list = [];
+        let attach_reaction_target_list = [];
+        while (REACTION_TARGET_LIST.length
+            && REACTION_STATE_LIST[0][0 /* DEPTH */] >= depth) {
+            let subscriber = REACTION_TARGET_LIST.shift();
+            let state = REACTION_STATE_LIST.shift();
+            let index = REACTION_TARGET_LIST.indexOf(subscriber);
+            if (index < 0 || REACTION_STATE_LIST[index][0 /* DEPTH */] >= depth) {
+                attach_reaction_state_list.push([depth - 1, state[1 /* RECORDS */]]);
+                attach_reaction_target_list.push(subscriber);
+            }
+            else {
+                REACTION_STATE_LIST[index][1 /* RECORDS */].push(...state[1 /* RECORDS */]);
+            }
+        }
+        if (attach_reaction_target_list.length) {
+            REACTION_STATE_LIST.unshift(...attach_reaction_state_list);
+            REACTION_TARGET_LIST.unshift(...attach_reaction_target_list);
+        }
         return;
     }
     while (REACTION_TARGET_LIST.length
@@ -1311,15 +1414,14 @@ function transacted() {
             reactions.unshift(subscriber);
         }
     }
-    hook && hook(reactions);
     if (reactions.length) {
-        if (action[1 /* TYPE */] & 8 /* WRAPUP */) {
+        if (!(action[0 /* TYPE */] & 8 /* WRAPUP */)) {
+            deepReactive(reactions, reaction_depth);
+        }
+        else {
             runInAction(function () {
                 deepReactive(reactions, reaction_depth);
             });
-        }
-        else {
-            deepReactive(reactions, reaction_depth);
         }
     }
 }
@@ -1368,7 +1470,6 @@ function equal(a, b) {
 function obArray(ob) {
     let target = ob.target;
     let prototype = target.__proto__;
-    let original = ob._proxy_handler.set;
     target.__proto__ = Object.create(prototype, Array.prototype.concat.call(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'].map(
     // 一个方法可能产生多次变更，这里使可能的多次变更最多对应一次订阅响应
     function (key) {
@@ -1403,11 +1504,12 @@ function obArray(ob) {
         patch && (prototype[patch[0]] = { value: patch[1] });
         return prototype;
     }, {}));
+    let original = ob._proxy_handler.set;
     ob._proxy_handler.set = function (_target, key, value) {
         let length = target.length;
         return _runInPlain(function () {
             let res = original(_target, key, value);
-            target.length !== length
+            target.length !== length && key !== "length"
                 && ob.notify("length", length, 10 /* REF_AND_VOLATILE */);
             return res;
         });
@@ -1568,6 +1670,26 @@ function obInternalData(ob) {
     }
     target.__proto__ = Object.create(target.__proto__.__proto__, descriptors);
 }
+let obb = {
+    Observer,
+    Subscriber,
+    observable,
+    autorun,
+    atom,
+    runInAtom,
+    action,
+    runInAction,
+    sandbox,
+    runInSandbox,
+    transacts,
+    SUBSCRIBE_OPTION,
+    computed,
+    watch,
+    reaction,
+    MASK_ITERATE,
+    MASK_UNDEFINED,
+};
+GLOBAL._obb = obb;
 
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
