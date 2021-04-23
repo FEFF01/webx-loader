@@ -206,6 +206,14 @@ function setNodes(sibling, els) {
 }
 exports.setNodes = setNodes;
 function createComponent(component, gen_props, gen_children) {
+    /**
+     * 避免构造 children 的过程中订阅了 props.children 的过程发生
+     * props.children.length 至 n 的 n 次回调
+     * 使用 action 后 component 首次收到空的 props.children
+     * 后续 children 构造完毕 action 方法结束 component
+     * 内的 props.children 订阅得到一次更新
+     */
+    gen_children && (gen_children = obb_1.action(gen_children));
     switch (true) {
         case gen_props && gen_children && true:
             return function () {
@@ -217,17 +225,7 @@ function createComponent(component, gen_props, gen_children) {
                 if (res === null || res === undefined) {
                     return;
                 }
-                //gen_children(props.children);
-                obb_1.runInAction(function () {
-                    /**
-                     * 避免构造 children 的过程中订阅了 props.children 的过程发生
-                     * props.children.length 至 n 的 n 次回调
-                     * 使用 action 后 component 首次收到空的 props.children
-                     * 后续 children 构造完毕 action 方法结束 component
-                     * 内的 props.children 订阅得到一次更新
-                     */
-                    gen_children(props.children);
-                });
+                gen_children(props.children);
                 return res;
             };
         case gen_children && true:
@@ -239,10 +237,7 @@ function createComponent(component, gen_props, gen_children) {
                 if (res === null || res === undefined) {
                     return;
                 }
-                //gen_children(props.children);
-                obb_1.runInAction(function () {
-                    gen_children(props.children);
-                });
+                gen_children(props.children);
                 return res;
             };
         case gen_props && true:
@@ -794,9 +789,7 @@ class NodeList extends Sibling {
             if (!(new_node instanceof Node)) {
                 if (cursor < old_nodes.length
                     && (old_node = old_nodes[cursor]).nodeType === Node.TEXT_NODE) {
-                    if (_webx.getText(old_node) != new_node) {
-                        _webx.setText(old_node, new_node);
-                    }
+                    _webx.setText(old_node, new_node);
                     new_node = old_node;
                 }
                 else {

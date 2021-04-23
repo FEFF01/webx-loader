@@ -3193,7 +3193,11 @@ const ModuleDeclarations = {
                 _: head_1._NonCollecting("Identifier from"),
                 source: STRING_LITERAL_PATTERN,
                 _next: head_1._Option("Punctuator ;")
-            }
+            },
+            [
+                ["specifiers", head_1._Mark(function () { return []; })],
+                ["_", head_1._Mark()],
+            ]
         ]
     },
     "ExportAllDeclaration": {
